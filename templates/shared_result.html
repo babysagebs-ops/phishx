@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Result — PhishX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <!-- QR code library (used only for print header) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* ── WEB VIEW ─────────────────────────────────────────── */
+        body { background: var(--bg); }
+
+        .page-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 24px 5rem; }
+
+        /* Header row */
+        .result-header {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+        }
+        .result-header h1 { font-size: 1.4rem; font-weight: 800; color: var(--ink); margin: 0; }
+        .result-header .meta { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+        .header-actions { display: flex; gap: 8px; }
+
+        .btn-action {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.82rem; font-weight: 600;
+            padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line);
+            background: var(--surface); color: var(--ink); cursor: pointer;
+            transition: background .15s, border-color .15s;
+        }
+        .btn-action:hover { background: var(--bg-soft); }
+        .btn-action.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-action.primary:hover { background: var(--primary-700); }
+
+        /* Verdict banner */
+        .verdict-banner {
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 1.75rem;
+            display: flex; align-items: center; gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid;
+        }
+        .verdict-banner.phishing {
+            background: var(--danger-soft); border-color: var(--danger);
+        }
+        .verdict-banner.safe {
+            background: var(--safe-soft); border-color: var(--safe);
+        }
+        .verdict-icon { font-size: 2rem; flex-shrink: 0; }
+        .verdict-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 3px; }
+        .verdict-banner.phishing .verdict-title { color: var(--danger); }
+        .verdict-banner.safe .verdict-title     { color: var(--safe); }
+        .verdict-sub { font-size: 0.85rem; color: var(--muted); }
+
+        /* Info cards grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
+
+        .info-card {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); padding: 1.1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex; flex-direction: column; align-items: center;
+            gap: 6px; text-align: center;
+        }
+        .info-card i { font-size: 1.2rem; color: var(--muted-2); margin-bottom: 2px; }
+        .info-card-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--muted-2); }
+        .info-card-value { font-size: 1.35rem; font-weight: 800; color: var(--ink); }
+        .info-card-value.danger { color: var(--danger); }
+        .info-card-value.safe   { color: var(--safe); }
+        .info-card-value.warn   { color: var(--warn); }
+
+        /* Scan summary table */
+        .section-box {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); overflow: hidden;
+            box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+        }
+        .section-head {
+            padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--line);
+            font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--muted);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-head i { color: var(--primary); }
+
+        .summary-table { width: 100%; border-collapse: collapse; }
+        .summary-table tr { border-bottom: 1px solid var(--line-2); }
+        .summary-table tr:last-child { border-bottom: none; }
+        .summary-table td { padding: 0.75rem 1.25rem; font-size: 0.87rem; }
+        .summary-table td:first-child { font-weight: 600; color: var(--muted); width: 160px; }
+        .summary-table td:last-child  { color: var(--ink); word-break: break-all; }
+
+        .verdict-pill {
+            display: inline-block; padding: 3px 12px; border-radius: 999px;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .verdict-pill.phishing { background: var(--danger-soft); color: var(--danger); }
+        .verdict-pill.safe     { background: var(--safe-soft);   color: var(--safe); }
+        .risk-pill {
+            display: inline-block; padding: 3px 12px; border-radius: 999px;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .risk-pill.high   { background: var(--danger-soft); color: var(--danger); }
+        .risk-pill.medium { background: var(--warn-soft);   color: #b97800; }
+        .risk-pill.low    { background: var(--safe-soft);   color: var(--safe); }
+
+        /* Feature breakdown */
+        .feature-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0; 
+        }
+        .feature-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.55rem 1.25rem; border-bottom: 1px solid var(--line-2);
+            font-size: 0.8rem;
+        }
+        .feature-row:nth-child(even) { background: var(--bg-soft); }
+        .feature-name { color: var(--muted); }
+        .feature-val { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .feature-val.safe   { color: var(--safe); }
+        .feature-val.danger { color: var(--danger); }
+
+        /* Report / share row */
+        .action-row {
+            display: flex; gap: 10px; align-items: center;
+            flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+
+        /* Report form */
+        .report-form-wrap {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); padding: 1.25rem;
+            box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+            display: none;
+        }
+        .report-form-wrap.is-open { display: block; }
+        .report-form-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--ink); }
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .form-select, .form-textarea {
+            background: var(--bg-soft); border: 1px solid var(--line);
+            border-radius: var(--radius); padding: 0.65rem 1rem;
+            font-size: 0.85rem; color: var(--ink); font-family: inherit;
+            outline: none; transition: border-color .2s;
+        }
+        .form-select { flex: 0 0 auto; }
+        .form-textarea { flex: 1; min-width: 200px; resize: vertical; min-height: 60px; }
+        .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+
+        /* Copy toast */
+        .copy-toast {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(10px);
+            background: var(--ink); color: var(--bg); font-size: 0.82rem; font-weight: 600;
+            padding: 10px 18px; border-radius: 999px; opacity: 0;
+            transition: opacity .2s, transform .2s; pointer-events: none; z-index: 999;
+        }
+        .copy-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── PRINT STYLES ─────────────────────────────────────── */
+        @media print {
+            /* Reset everything for print */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            body { background: #fff !important; color: #111 !important;
+                font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+
+            /* Hide all web UI */
+            .site-header, .header-actions, .action-row,
+            .report-form-wrap, .copy-toast,
+            .section-box.feature-section { display: none !important; }
+
+            .page-wrap { max-width: 100%; padding: 0; margin: 0; }
+
+            /* ── PRINT HEADER ── */
+            .print-header {
+                display: flex !important;
+                align-items: flex-start;
+                justify-content: space-between;
+                padding: 28px 36px 20px;
+                border-bottom: 2px solid #e0e0e0;
+            }
+            .print-header-left { display: flex; align-items: center; gap: 18px; }
+            .print-shield {
+                width: 60px; height: 60px;
+                background: #0e2a5e;
+                border-radius: 50% 50% 42% 42%;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
+            }
+            .print-shield svg { width: 30px; height: 30px; }
+            .print-header-text h1 {
+                font-size: 22px; font-weight: 800;
+                color: #0e2a5e; margin: 0 0 3px; letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+            .print-header-text p { font-size: 12px; color: #777; margin: 0; }
+            .print-qr { text-align: center; }
+            .print-qr canvas, .print-qr img { width: 80px !important; height: 80px !important; }
+            .print-qr-label { font-size: 10px; color: #999; margin-top: 4px; }
+
+            /* ── PRINT SECTIONS ── */
+            .print-section { padding: 22px 36px; border-bottom: 1px solid #e8e8e8; }
+            .print-section-title {
+                font-size: 11px; font-weight: 700; text-transform: uppercase;
+                letter-spacing: 0.8px; color: #0e2a5e; margin: 0 0 14px;
+                padding-left: 10px; border-left: 3px solid #0e2a5e;
+            }
+
+            /* Scan summary table */
+            .print-summary-table { width: 100%; border-collapse: collapse; }
+            .print-summary-table tr { border-bottom: 1px solid #eee; }
+            .print-summary-table td { padding: 9px 0; font-size: 12px; }
+            .print-summary-table td:first-child { font-weight: 700; color: #444; width: 160px; }
+            .print-summary-table td:last-child  { color: #111; word-break: break-all; }
+
+            .print-verdict-phishing { color: #c0271e !important; font-weight: 800; }
+            .print-verdict-safe     { color: #1a6ed8 !important; font-weight: 800; }
+            .print-risk-high        { color: #c0271e !important; font-weight: 800; }
+            .print-risk-medium      { color: #d47a00 !important; font-weight: 800; }
+            .print-risk-low         { color: #1a6ed8 !important; font-weight: 800; }
+
+            /* Result alert box */
+            .print-alert {
+                display: flex !important;
+                border-radius: 8px; padding: 16px 20px;
+                align-items: flex-start; gap: 16px;
+                border: 1.5px solid;
+            }
+            .print-alert.phishing {
+                background: #fdf2f2 !important; border-color: #c0271e !important;
+            }
+            .print-alert.safe {
+                background: #eef4fd !important; border-color: #1a6ed8 !important;
+            }
+            .print-alert-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+            .print-alert.phishing .print-alert-icon { color: #c0271e; }
+            .print-alert.safe     .print-alert-icon { color: #1a6ed8; }
+            .print-alert-title {
+                font-size: 13px; font-weight: 800; margin-bottom: 5px;
+                text-transform: uppercase; letter-spacing: 0.3px;
+            }
+            .print-alert.phishing .print-alert-title { color: #c0271e; }
+            .print-alert.safe     .print-alert-title { color: #1a6ed8; }
+            .print-alert-body { font-size: 11.5px; color: #555; line-height: 1.6; }
+
+            /* Classification 3-col */
+            .print-class-grid {
+                display: flex !important; border: 1px solid #e0e0e0;
+                border-radius: 8px; overflow: hidden;
+            }
+            .print-class-cell {
+                flex: 1; text-align: center; padding: 18px 12px;
+                border-right: 1px solid #e0e0e0;
+            }
+            .print-class-cell:last-child { border-right: none; }
+            .print-class-icon { font-size: 22px; color: #555; margin-bottom: 8px; }
+            .print-class-label {
+                font-size: 10px; font-weight: 600; text-transform: uppercase;
+                letter-spacing: 0.5px; color: #888; margin-bottom: 6px;
+            }
+            .print-class-value {
+                font-size: 18px; font-weight: 800;
+            }
+
+            /* Scan by */
+            .print-scan-by { width: 100%; border-collapse: collapse; }
+            .print-scan-by tr { border-bottom: 1px solid #eee; }
+            .print-scan-by td { padding: 7px 0; font-size: 12px; }
+            .print-scan-by td:first-child { font-weight: 700; color: #444; width: 160px; }
+
+            /* Features mini grid */
+            .print-features-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0;
+                border: 1px solid #eee; border-radius: 8px; overflow: hidden;
+            }
+            .print-feature-row {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 5px 10px; border-bottom: 1px solid #f0f0f0; font-size: 10.5px;
+            }
+            .print-feature-row:nth-child(odd) { background: #fafafa; }
+            .print-feature-name { color: #555; }
+            .print-feature-val { font-weight: 700; font-family: monospace; }
+            .print-feature-val.safe   { color: #1a6ed8; }
+            .print-feature-val.danger { color: #c0271e; }
+
+            /* Verdict banner hidden in print (replaced by print-specific markup) */
+            .verdict-banner { display: none !important; }
+            .info-grid      { display: none !important; }
+            .section-box.summary-section { display: none !important; }
+
+            /* Show print-only elements */
+            .print-only { display: block !important; }
+        }
+
+        /* Hide print-only elements on screen */
+        .print-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- ─── SITE HEADER (web only) ─── -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{{ url_for('index') }}" style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink)">
+                <span style="color:var(--primary)">▰</span> PhishX
+            </a>
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}"  class="nav-link">Scanner</a>
+                <a href="{{ url_for('tips') }}"   class="nav-link">Tips</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('history') }}" class="nav-link">History</a>
+                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}"  class="nav-link">Login</a>
+                    <a href="{{ url_for('signup') }}" class="nav-link">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- ─── PRINT-ONLY REPORT ─── -->
+    <div class="print-only" id="printReport">
+
+        <!-- Header -->
+        <div class="print-header">
+            <div class="print-header-left">
+                <div class="print-shield">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <circle cx="12" cy="11" r="3" fill="#fff" stroke="none"/>
+                    </svg>
+                </div>
+                <div class="print-header-text">
+                    <h1>URL Scan Result</h1>
+                    <p>Phishing Detection Report &nbsp;·&nbsp; PhishX v1.0</p>
+                </div>
+            </div>
+            <div class="print-qr">
+                <div id="printQrCode"></div>
+                <div class="print-qr-label">Scan to view online</div>
+            </div>
+        </div>
+
+        <!-- Scan Summary -->
+        <div class="print-section">
+            <div class="print-section-title">Scan Summary</div>
+            <table class="print-summary-table">
+                <tr>
+                    <td>URL</td>
+                    <td>{{ url }}</td>
+                </tr>
+                <tr>
+                    <td>Date &amp; Time</td>
+                    <td>{{ scan.scanned_at.strftime('%d %b %Y, %H:%M UTC') }}</td>
+                </tr>
+                <tr>
+                    <td>Scan ID</td>
+                    <td style="font-family:monospace">PX-{{ share_token | upper }}</td>
+                </tr>
+                <tr>
+                    <td>Scan Result</td>
+                    <td class="{{ 'print-verdict-phishing' if is_phishing else 'print-verdict-safe' }}">
+                        {{ 'PHISHING' if is_phishing else 'SAFE' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Risk Level</td>
+                    <td class="{{ 'print-risk-high' if risk_score >= 70 else ('print-risk-medium' if risk_score >= 40 else 'print-risk-low') }}">
+                        {{ 'HIGH' if risk_score >= 70 else ('MEDIUM' if risk_score >= 40 else 'LOW') }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Result Summary -->
+        <div class="print-section">
+            <div class="print-section-title">Result Summary</div>
+            <div class="print-alert {{ 'phishing' if is_phishing else 'safe' }}">
+                <div class="print-alert-icon">
+                    {% if is_phishing %}
+                        <i class="fa-solid fa-shield-exclamation"></i>
+                    {% else %}
+                        <i class="fa-solid fa-shield-check"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="print-alert-title">
+                        {% if is_phishing %}Phishing Website Detected{% else %}Website Appears Safe{% endif %}
+                    </div>
+                    <div class="print-alert-body">
+                        {% if is_phishing %}
+                            This URL has been identified as a potential phishing site with {{ risk_score }}% risk.
+                            Avoid visiting this link and do not enter any personal or financial information.
+                        {% else %}
+                            This URL passed all phishing signal checks with a {{ 100 - risk_score }}% safety score.
+                            Always stay cautious — no automated tool can guarantee 100% accuracy.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification -->
+        <div class="print-section">
+            <div class="print-section-title">Classification</div>
+            <div class="print-class-grid">
+                <div class="print-class-cell">
+                    <div class="print-class-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                    <div class="print-class-label">Prediction</div>
+                    <div class="print-class-value {{ 'print-verdict-phishing' if is_phishing else 'print-verdict-safe' }}">
+                        {{ 'PHISHING' if is_phishing else 'SAFE' }}
+                    </div>
+                </div>
+                <div class="print-class-cell">
+                    <div class="print-class-icon"><i class="fa-solid fa-chart-column"></i></div>
+                    <div class="print-class-label">Confidence</div>
+                    <div class="print-class-value {{ 'print-risk-high' if risk_score >= 70 else ('print-risk-medium' if risk_score >= 40 else 'print-risk-low') }}">
+                        {{ risk_score if is_phishing else (100 - risk_score) }}%
+                    </div>
+                </div>
+                <div class="print-class-cell">
+                    <div class="print-class-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="print-class-label">Risk Level</div>
+                    <div class="print-class-value {{ 'print-risk-high' if risk_score >= 70 else ('print-risk-medium' if risk_score >= 40 else 'print-risk-low') }}">
+                        {{ 'HIGH' if risk_score >= 70 else ('MEDIUM' if risk_score >= 40 else 'LOW') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Signals (compact grid, print only) -->
+        {% if feature_dict %}
+        <div class="print-section">
+            <div class="print-section-title">Feature Signal Breakdown</div>
+            <div class="print-features-grid">
+                {% for name, val in feature_dict.items() %}
+                <div class="print-feature-row">
+                    <span class="print-feature-name">{{ name }}</span>
+                    <span class="print-feature-val {{ 'danger' if val == -1 else 'safe' }}">
+                        {{ '⚠ Suspicious' if val == -1 else ('✓ Safe' if val == 1 else '– Neutral') }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Scan By -->
+        <div class="print-section">
+            <div class="print-section-title">Scan By</div>
+            <table class="print-scan-by">
+                <tr><td>Scanner</td><td>PhishX — URL Phishing Detector</td></tr>
+                <tr><td>Model</td><td>Gradient Boosting Classifier (GBC)</td></tr>
+                <tr><td>Version</td><td>1.0</td></tr>
+                <tr><td>Generated On</td><td>{{ scan.scanned_at.strftime('%d %b %Y') }}</td></tr>
+                <tr><td>Report URL</td><td style="font-family:monospace">{{ request.url }}</td></tr>
+            </table>
+        </div>
+
+    </div><!-- /printReport -->
+
+    <!-- ─── WEB VIEW ─── -->
+    <div class="page-wrap" id="webView">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div style="padding:.65rem 1rem;border-radius:var(--radius);font-size:.85rem;margin-bottom:1rem;
+                    background:{{ 'var(--safe-soft)' if category == 'success' else 'var(--danger-soft)' }};
+                    color:{{ 'var(--safe)' if category == 'success' else 'var(--danger)' }};
+                    border:1px solid {{ 'var(--safe)' if category == 'success' else 'var(--danger)' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- Header row -->
+        <div class="result-header">
+            <div>
+                <h1>Scan Result</h1>
+                <div class="meta">Scanned {{ scan.scanned_at.strftime('%d %b %Y at %H:%M UTC') }}</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-action" id="copyLinkBtn">
+                    <i class="fa-regular fa-copy"></i> Copy Link
+                </button>
+                <button class="btn-action" id="toggleReportBtn">
+                    <i class="fa-solid fa-flag"></i> Report
+                </button>
+                <button class="btn-action primary" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i> Print / Save PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Verdict banner -->
+        <div class="verdict-banner {{ 'phishing' if is_phishing else 'safe' }}">
+            <div class="verdict-icon">
+                {% if is_phishing %}
+                    <i class="fa-solid fa-shield-exclamation" style="color:var(--danger)"></i>
+                {% else %}
+                    <i class="fa-solid fa-shield-check" style="color:var(--safe)"></i>
+                {% endif %}
+            </div>
+            <div>
+                <div class="verdict-title">
+                    {% if is_phishing %}Phishing Website Detected{% else %}Website Appears Safe{% endif %}
+                </div>
+                <div class="verdict-sub">
+                    {% if is_phishing %}
+                        Avoid visiting this link. Do not enter any personal or financial information.
+                    {% else %}
+                        No major threat signals detected. Stay vigilant — always verify before sharing sensitive data.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <i class="fa-solid fa-crosshairs"></i>
+                <span class="info-card-label">Prediction</span>
+                <span class="info-card-value {{ 'danger' if is_phishing else 'safe' }}">
+                    {{ 'PHISHING' if is_phishing else 'SAFE' }}
+                </span>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-chart-column"></i>
+                <span class="info-card-label">Confidence</span>
+                <span class="info-card-value {{ 'danger' if risk_score >= 70 else ('warn' if risk_score >= 40 else 'safe') }}">
+                    {{ risk_score if is_phishing else (100 - risk_score) }}%
+                </span>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="info-card-label">Risk Level</span>
+                <span class="info-card-value {{ 'danger' if risk_score >= 70 else ('warn' if risk_score >= 40 else 'safe') }}">
+                    {{ 'HIGH' if risk_score >= 70 else ('MEDIUM' if risk_score >= 40 else 'LOW') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Scan summary table -->
+        <div class="section-box summary-section">
+            <div class="section-head"><i class="fa-solid fa-list"></i> Scan Summary</div>
+            <table class="summary-table">
+                <tr>
+                    <td>URL</td>
+                    <td><a href="{{ url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary)">{{ url }}</a></td>
+                </tr>
+                <tr>
+                    <td>Date &amp; Time</td>
+                    <td>{{ scan.scanned_at.strftime('%d %b %Y, %H:%M UTC') }}</td>
+                </tr>
+                <tr>
+                    <td>Scan ID</td>
+                    <td class="mono">PX-{{ share_token | upper }}</td>
+                </tr>
+                <tr>
+                    <td>Result</td>
+                    <td>
+                        <span class="verdict-pill {{ 'phishing' if is_phishing else 'safe' }}">
+                            {{ 'PHISHING' if is_phishing else 'SAFE' }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Risk Level</td>
+                    <td>
+                        <span class="risk-pill {{ 'high' if risk_score >= 70 else ('medium' if risk_score >= 40 else 'low') }}">
+                            {{ 'HIGH' if risk_score >= 70 else ('MEDIUM' if risk_score >= 40 else 'LOW') }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Safe Probability</td>
+                    <td>{{ "%.1f"|format(xx * 100) }}%</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Report form (toggleable) -->
+        <div class="report-form-wrap" id="reportFormWrap">
+            <div class="report-form-title"><i class="fa-solid fa-flag" style="color:var(--danger)"></i> Report an Issue</div>
+            <form method="POST" action="{{ url_for('report_url', token=share_token) }}">
+                <div class="form-row">
+                    <select class="form-select" name="reason">
+                        <option value="false_positive">False positive — this site is safe</option>
+                        <option value="false_negative">False negative — this site is dangerous</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <textarea class="form-textarea" name="note" placeholder="Optional details…"></textarea>
+                </div>
+                <button class="btn-action primary" type="submit">Submit Report</button>
+                <button class="btn-action" type="button" id="cancelReportBtn" style="margin-left:6px">Cancel</button>
+            </form>
+        </div>
+
+        <!-- Feature breakdown -->
+        {% if feature_dict %}
+        <div class="section-box feature-section">
+            <div class="section-head"><i class="fa-solid fa-microscope"></i> Feature Signal Breakdown</div>
+            <div class="feature-grid">
+                {% for name, val in feature_dict.items() %}
+                <div class="feature-row">
+                    <span class="feature-name">{{ name }}</span>
+                    <span class="feature-val {{ 'danger' if val == -1 else 'safe' }}">
+                        {{ '⚠ Suspicious' if val == -1 else ('✓ Safe' if val == 1 else '– Neutral') }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="text-align:center;margin-top:2rem">
+            <a href="{{ url_for('index') }}" class="btn-action">
+                <i class="fa-solid fa-arrow-left"></i> Scan Another URL
+            </a>
+        </div>
+
+    </div><!-- /webView -->
+
+    <div class="copy-toast" id="copyToast">Link copied to clipboard</div>
+
+    <script>
+        // ── Copy link ──────────────────────────────────────────
+        document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const t = document.getElementById('copyToast');
+                t.classList.add('is-visible');
+                setTimeout(() => t.classList.remove('is-visible'), 2200);
+            });
+        });
+
+        // ── Report form toggle ─────────────────────────────────
+        document.getElementById('toggleReportBtn')?.addEventListener('click', () => {
+            document.getElementById('reportFormWrap').classList.toggle('is-open');
+        });
+        document.getElementById('cancelReportBtn')?.addEventListener('click', () => {
+            document.getElementById('reportFormWrap').classList.remove('is-open');
+        });
+
+        // ── QR code for print header ───────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const qrEl = document.getElementById('printQrCode');
+            if (qrEl && typeof QRCode !== 'undefined') {
+                new QRCode(qrEl, {
+                    text: window.location.href,
+                    width: 80, height: 80,
+                    colorDark: '#000', colorLight: '#fff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+
+        // ── Dark mode ──────────────────────────────────────────
+        (function () {
+            const stored = localStorage.getItem('sentinel-theme');
+            if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+</body>
+</html>

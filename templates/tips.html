@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Tips — PhishX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <style>
+        body { background: var(--bg); }
+
+        /* ── HEADER ── */
+        .site-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .header-inner {
+            max-width: 1280px; margin: 0 auto;
+            padding: 0 32px;
+            display: flex; align-items: center; gap: 2rem;
+            height: 64px;
+        }
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; flex-shrink: 0;
+        }
+        .brand-mark { color: var(--primary); font-size: 1.4rem; transform: rotate(45deg); display: inline-block; line-height: 1; }
+        .brand-text { line-height: 1.15; }
+        .brand-name { font-size: 1rem; font-weight: 800; letter-spacing: -.01em; color: var(--ink); display: block; }
+        .brand-sub  { font-size: 0.65rem; color: var(--muted); font-weight: 500; display: block; }
+
+        .main-nav { display: flex; align-items: center; gap: 4px; flex: 1; margin-left: 1.5rem; }
+        .nav-link {
+            font-size: 0.875rem; font-weight: 500; color: var(--muted);
+            padding: 6px 14px; border-radius: 8px;
+            transition: color .15s, background .15s; text-decoration: none;
+        }
+        .nav-link:hover { color: var(--ink); background: var(--bg-soft); }
+        .nav-link.active { color: var(--primary); font-weight: 600; border-bottom: 2px solid var(--primary); border-radius: 0; }
+
+        .header-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+        .icon-btn {
+            width: 36px; height: 36px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 8px; color: var(--muted-2);
+            border: 1px solid var(--line); background: var(--surface);
+            cursor: pointer; transition: color .15s, background .15s;
+        }
+        .icon-btn:hover { color: var(--ink); background: var(--bg-soft); }
+        .user-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--primary); color: #fff;
+            border-radius: 999px; padding: 4px 12px 4px 4px;
+            font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; border: none; text-decoration: none;
+        }
+        .user-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(255,255,255,.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700;
+        }
+
+        /* ── PAGE WRAP ── */
+        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* ── HERO ── */
+        .tips-hero {
+            padding: 56px 0 48px;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 2rem; align-items: center;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 48px;
+        }
+        .tips-hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: var(--safe-soft); color: var(--primary);
+            border: 1px solid rgba(25,71,209,.2);
+            border-radius: 999px; padding: 5px 14px;
+            font-size: 0.78rem; font-weight: 600; margin-bottom: 16px;
+        }
+        .tips-hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
+            font-weight: 800; letter-spacing: -.03em;
+            line-height: 1.1; margin: 0 0 14px; color: var(--ink);
+        }
+        .tips-hero h1 span { color: var(--primary); }
+        .tips-hero p { font-size: .95rem; color: var(--muted); line-height: 1.7; margin: 0 0 24px; max-width: 480px; }
+
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--primary); color: #fff;
+            border-radius: 12px; padding: 12px 22px;
+            font-size: .9rem; font-weight: 700; text-decoration: none;
+            transition: background .2s;
+        }
+        .hero-cta:hover { background: var(--primary-700); }
+
+        /* Hero stat strip */
+        .hero-stats {
+            display: flex; gap: 0;
+            border: 1px solid var(--line); border-radius: 14px;
+            overflow: hidden; background: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+        .hero-stat {
+            flex: 1; padding: 20px 16px; text-align: center;
+            border-right: 1px solid var(--line);
+        }
+        .hero-stat:last-child { border-right: none; }
+        .hero-stat-num { font-size: 1.6rem; font-weight: 800; color: var(--ink); line-height: 1; }
+        .hero-stat-num.accent { color: var(--primary); }
+        .hero-stat-label { font-size: .7rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.1rem; font-weight: 800; color: var(--ink);
+            margin: 0 0 20px; letter-spacing: -.01em;
+        }
+        .section-title::after {
+            content: ''; flex: 1; height: 1px; background: var(--line);
+        }
+        .section-title i { color: var(--primary); font-size: .95rem; }
+
+        /* ── ALERT BANNER ── */
+        .alert-banner {
+            background: var(--danger-soft); border: 1px solid var(--danger);
+            border-radius: 14px; padding: 16px 20px;
+            display: flex; align-items: flex-start; gap: 14px;
+            margin-bottom: 40px;
+        }
+        .alert-banner i { color: var(--danger); font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+        .alert-banner strong { display: block; font-size: .88rem; font-weight: 700; color: var(--danger); margin-bottom: 3px; }
+        .alert-banner p { font-size: .83rem; color: var(--muted); margin: 0; line-height: 1.55; }
+
+        /* ── TIP CARDS GRID ── */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        .tip-card {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 16px; padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: border-color .2s, box-shadow .2s;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .tip-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(25,71,209,.1);
+        }
+        .tip-card-header { display: flex; align-items: flex-start; gap: 12px; }
+        .tip-icon {
+            width: 40px; height: 40px; border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .95rem; flex-shrink: 0;
+        }
+        .tip-icon.blue   { background: var(--safe-soft);   color: var(--primary); }
+        .tip-icon.red    { background: var(--danger-soft);  color: var(--danger); }
+        .tip-icon.green  { background: #d1fae5;             color: #059669; }
+        .tip-icon.yellow { background: #fef3c7;             color: #d97706; }
+        .tip-icon.purple { background: #ede9fe;             color: #7c3aed; }
+        .tip-icon.orange { background: #ffedd5;             color: #ea580c; }
+
+        .tip-card-title { font-size: .9rem; font-weight: 700; color: var(--ink); margin: 0; line-height: 1.3; }
+        .tip-card-category {
+            font-size: .68rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .5px; color: var(--muted-2); margin-top: 2px;
+        }
+        .tip-card-body { font-size: .83rem; color: var(--muted); line-height: 1.65; }
+        .tip-card-example {
+            background: var(--bg-soft); border-left: 3px solid var(--primary);
+            border-radius: 0 8px 8px 0; padding: 10px 14px;
+            font-size: .78rem; color: var(--muted); line-height: 1.55;
+        }
+        .tip-card-example strong { color: var(--ink); font-weight: 600; }
+
+        /* ── RED FLAGS SECTION ── */
+        .redflags-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 12px; margin-bottom: 48px;
+        }
+        .redflag-row {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 12px; padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .redflag-row i { color: var(--danger); font-size: .85rem; margin-top: 3px; flex-shrink: 0; }
+        .redflag-row span { font-size: .85rem; color: var(--ink); line-height: 1.5; }
+
+        /* ── CHECKLIST ── */
+        .checklist {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 18px; overflow: hidden;
+            box-shadow: var(--shadow-sm); margin-bottom: 48px;
+        }
+        .checklist-header {
+            background: var(--primary); color: #fff;
+            padding: 18px 24px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .checklist-header i { font-size: 1rem; }
+        .checklist-header h3 { font-size: .95rem; font-weight: 700; margin: 0; }
+        .checklist-header p  { font-size: .78rem; margin: 0; opacity: .8; }
+        .checklist-items { padding: 8px 0; }
+        .checklist-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 13px 24px; border-bottom: 1px solid var(--line-2);
+            cursor: pointer; transition: background .12s;
+        }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item:hover { background: var(--bg-soft); }
+        .checklist-item input[type="checkbox"] {
+            width: 17px; height: 17px; accent-color: var(--primary);
+            cursor: pointer; flex-shrink: 0;
+        }
+        .checklist-item label {
+            font-size: .85rem; color: var(--ink); cursor: pointer; flex: 1; line-height: 1.45;
+        }
+        .checklist-item.checked label { text-decoration: line-through; color: var(--muted); }
+        .checklist-progress {
+            padding: 14px 24px; border-top: 1px solid var(--line);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .progress-bar-wrap { flex: 1; background: var(--bg-soft); border-radius: 999px; height: 6px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); border-radius: 999px; transition: width .3s ease; }
+        .progress-label { font-size: .75rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
+        /* ── LIVE NEWS ── */
+        .news-sources-row { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+        .news-source-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: var(--bg-soft); border: 1px solid var(--line);
+            border-radius: 999px; padding: 3px 10px;
+            font-size: 0.72rem; font-weight: 600; color: var(--muted);
+            cursor: pointer; transition: all .15s;
+        }
+        .news-source-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .news-source-pill:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+
+        .news-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1.1rem;
+            display: flex; flex-direction: column; gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow .2s, transform .2s;
+            text-decoration: none;
+            color: inherit;
+            animation: fadeUp .35s ease both;
+        }
+        .news-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+        .news-card-source {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--primary);
+        }
+        .news-card-source-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--primary); flex-shrink: 0;
+        }
+        .news-card-title {
+            font-size: 0.88rem; font-weight: 700;
+            color: var(--ink); line-height: 1.4;
+        }
+        .news-card-desc {
+            font-size: 0.78rem; color: var(--muted);
+            line-height: 1.55; flex: 1;
+            display: -webkit-box; -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .news-card-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: auto; padding-top: 0.5rem;
+            border-top: 1px solid var(--line);
+            font-size: 0.72rem; color: var(--muted2);
+        }
+        .news-read-more { color: var(--primary); font-weight: 600; font-size: 0.75rem; }
+
+        .news-skeleton {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            height: 160px;
+            position: relative; overflow: hidden;
+        }
+        .news-skeleton::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.04) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .news-error {
+            text-align: center; padding: 2rem;
+            color: var(--muted); font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .news-error i { color: var(--warn); }
+
+        /* ── CTA FOOTER ── */
+        .cta-footer {
+            background: linear-gradient(135deg, var(--primary) 0%, #3b6aff 100%);
+            border-radius: 20px; padding: 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 2rem; flex-wrap: wrap;
+            color: #fff;
+        }
+        .cta-footer h2 { font-size: 1.4rem; font-weight: 800; margin: 0 0 6px; }
+        .cta-footer p  { font-size: .9rem; opacity: .85; margin: 0; }
+        .cta-footer-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #fff; color: var(--primary);
+            border-radius: 12px; padding: 13px 24px;
+            font-size: .9rem; font-weight: 700; text-decoration: none;
+            white-space: nowrap; transition: background .2s;
+            flex-shrink: 0;
+        }
+        .cta-footer-btn:hover { background: #f0f4ff; }
+
+        /* Mobile nav drawer */
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            padding: 8px 16px 12px;
+        }
+        .mobile-nav.is-open { display: flex; }
+        .mobile-nav .nav-link {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--line-2);
+            font-size: .9rem;
+        }
+        .mobile-nav .nav-link:last-child { border-bottom: none; }
+
+        @media (max-width: 640px) {
+            #mobileMenuBtn { display: inline-flex !important; }
+        }
+
+        /* ── RESPONSIVE ── */
+
+        /* Tablet: 860px and below */
+        @media (max-width: 860px) {
+            .page-wrap { padding: 0 24px 60px; }
+
+            /* Hero */
+            .tips-hero {
+                grid-template-columns: 1fr;
+                padding: 40px 0 36px;
+                gap: 1.5rem;
+            }
+            .tips-hero h1 { font-size: clamp(1.5rem, 5vw, 2rem); }
+            .hero-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                width: 100%;
+            }
+
+            /* Red flags: single column */
+            .redflags-grid { grid-template-columns: 1fr; }
+
+            /* Tips grid: 2 columns */
+            .tips-grid { grid-template-columns: repeat(2, 1fr); }
+
+            /* CTA */
+            .cta-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 28px 28px;
+                gap: 1.25rem;
+            }
+            .cta-footer-btn { width: 100%; justify-content: center; }
+        }
+
+        /* Mobile: 640px and below */
+        @media (max-width: 640px) {
+            .page-wrap { padding: 0 16px 48px; }
+
+            /* Header */
+            .header-inner { padding: 0 16px; gap: 0; }
+            .main-nav { display: none; }
+            .brand-sub { display: none; }
+            .header-right { gap: 6px; }
+
+            /* Hero */
+            .tips-hero { padding: 32px 0 28px; margin-bottom: 28px; }
+            .tips-hero-eyebrow { font-size: .72rem; }
+            .tips-hero h1 { font-size: 1.5rem; }
+            .tips-hero p  { font-size: .88rem; }
+            .hero-cta { width: 100%; justify-content: center; }
+            .hero-stats { grid-template-columns: repeat(3, 1fr); }
+            .hero-stat { padding: 14px 10px; }
+            .hero-stat-num { font-size: 1.1rem; }
+            .hero-stat-label { font-size: .62rem; }
+
+            /* Alert banner */
+            .alert-banner { padding: 14px 16px; gap: 10px; }
+            .alert-banner strong { font-size: .83rem; }
+            .alert-banner p { font-size: .78rem; }
+
+            /* Section titles */
+            .section-title { font-size: .95rem; }
+
+            /* Tips: single column */
+            .tips-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 32px; }
+            .tip-card { padding: 16px; }
+            .tip-card-body { font-size: .82rem; }
+            .tip-card-example { font-size: .76rem; }
+
+            /* Red flags */
+            .redflags-grid { gap: 8px; margin-bottom: 32px; }
+            .redflag-row { padding: 12px 14px; }
+            .redflag-row span { font-size: .82rem; }
+
+            /* Checklist */
+            .checklist { margin-bottom: 32px; }
+            .checklist-header { padding: 14px 16px; }
+            .checklist-header h3 { font-size: .88rem; }
+            .checklist-item { padding: 12px 16px; }
+            .checklist-item label { font-size: .82rem; }
+            .checklist-progress { padding: 12px 16px; }
+
+            /* CTA */
+            .cta-footer { padding: 22px 20px; border-radius: 14px; }
+            .cta-footer h2 { font-size: 1.1rem; }
+            .cta-footer p  { font-size: .82rem; }
+        }
+
+        /* Very small: 380px and below */
+        @media (max-width: 380px) {
+            .hero-stats { grid-template-columns: 1fr; }
+            .hero-stat { border-right: none; border-bottom: 1px solid var(--line); }
+            .hero-stat:last-child { border-bottom: none; }
+            .tips-hero h1 { font-size: 1.35rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── HEADER ── -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="{{ url_for('index') }}" class="brand">
+                <span class="brand-mark">▰</span>
+                <div class="brand-text">
+                    <span class="brand-name">PhishX</span>
+                    <span class="brand-sub">Phishing Detection System</span>
+                </div>
+            </a>
+            <nav class="main-nav" aria-label="Primary">
+                <a href="{{ url_for('index') }}" class="nav-link">Scanner</a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('history') }}" class="nav-link">History</a>
+                {% endif %}
+                <a href="{{ url_for('tips') }}" class="nav-link active">Security Tips</a>
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
+                {% endif %}
+            </nav>
+            <div class="header-right">
+                <button class="icon-btn" id="mobileMenuBtn" aria-label="Open menu" style="display:none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="user-pill">
+                    <span class="user-avatar">{{ current_user.username[0].upper() }}</span>
+                    {{ current_user.username }}
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="icon-btn" style="width:auto;padding:0 14px;font-size:.82rem;font-weight:600;color:var(--ink);border-radius:8px;text-decoration:none">Login</a>
+                <a href="{{ url_for('signup') }}" class="user-pill" style="text-decoration:none">
+                    <span class="user-avatar"><i class="fa-solid fa-user" style="font-size:.65rem"></i></span>
+                    Sign Up
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile nav drawer -->
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+        <a href="{{ url_for('index') }}" class="nav-link">Scanner</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        {% endif %}
+        <a href="{{ url_for('tips') }}" class="nav-link active">Security Tips</a>
+        {% if current_user.is_admin() %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+        <a href="{{ url_for('signup') }}" class="nav-link">Sign Up</a>
+        {% endif %}
+    </nav>
+
+    <div class="page-wrap">
+
+        <!-- ── HERO ── -->
+        <div class="tips-hero">
+            <div>
+                <div class="tips-hero-eyebrow">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Stay one step ahead
+                </div>
+                <h1>Protect yourself from <span>phishing attacks</span></h1>
+                <p>Phishing is the #1 cause of data breaches. These practical tips will help you spot fake links, avoid scams, and keep your accounts safe.</p>
+                <a href="{{ url_for('index') }}" class="hero-cta">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Scan a suspicious URL
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-num accent">3.4B</div>
+                    <div class="hero-stat-label">Phishing emails sent daily</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">36%</div>
+                    <div class="hero-stat-label">Of breaches involve phishing</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">£4M</div>
+                    <div class="hero-stat-label">Avg. data breach cost</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ALERT ── -->
+        <div class="alert-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>
+                <strong>Never enter credentials on a page you reached by clicking a link.</strong>
+                <p>Regardless of how convincing it looks, always navigate directly to the website by typing the address into your browser. If in doubt, scan the URL with PhishX first.</p>
+            </div>
+        </div>
+
+        <!-- ── CORE TIPS ── -->
+        <div class="section-title"><i class="fa-solid fa-lightbulb"></i> Core Defensive Tips</div>
+        <div class="tips-grid">
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon blue"><i class="fa-solid fa-link"></i></div>
+                    <div>
+                        <div class="tip-card-category">URLs</div>
+                        <h3 class="tip-card-title">Always inspect links before clicking</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">Hover over any link to reveal the real destination in your browser's status bar. The display text and the actual URL can be completely different.</p>
+                <div class="tip-card-example">
+                    <strong>Example:</strong> A link saying "PayPal Login" might point to <code>paypa1-secure.ru/login</code> — note the digit <strong>1</strong> instead of the letter <strong>l</strong>.
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon green"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <div class="tip-card-category">HTTPS</div>
+                        <h3 class="tip-card-title">HTTPS alone doesn't mean safe</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">A padlock icon only means the connection is encrypted, not that the site is legitimate. Phishers routinely get free SSL certificates for their fake sites.</p>
+                <div class="tip-card-example">
+                    <strong>What to do:</strong> Check the full domain name, not just the padlock. <code>https://paypal.com</code> is safe. <code>https://paypal-secure-login.xyz</code> is not.
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon yellow"><i class="fa-solid fa-envelope"></i></div>
+                    <div>
+                        <div class="tip-card-category">Email</div>
+                        <h3 class="tip-card-title">Treat unexpected emails with suspicion</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">Phishers impersonate banks, delivery companies, and tech platforms. Urgency is a red flag — "your account will be closed in 24 hours" is a classic tactic.</p>
+                <div class="tip-card-example">
+                    <strong>Rule of thumb:</strong> Legitimate companies never ask you to confirm passwords, PINs, or card numbers by email.
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon purple"><i class="fa-solid fa-key"></i></div>
+                    <div>
+                        <div class="tip-card-category">Accounts</div>
+                        <h3 class="tip-card-title">Use two-factor authentication</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">2FA means a stolen password alone isn't enough to access your accounts. Use an authenticator app rather than SMS where possible — SIM-swap attacks exist.</p>
+                <div class="tip-card-example">
+                    <strong>Recommended:</strong> Google Authenticator, Authy, or a hardware key (YubiKey) for high-value accounts like email, banking, and work systems.
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon red"><i class="fa-solid fa-at"></i></div>
+                    <div>
+                        <div class="tip-card-category">Sender</div>
+                        <h3 class="tip-card-title">Verify the sender address, not the name</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">Display names can say anything. "Apple Support" is easy to fake — the actual sending address is what matters. Check it carefully for typos or unusual domains.</p>
+                <div class="tip-card-example">
+                    <strong>Suspicious:</strong> <code>support@apple-helpdesk.com</code> or <code>no-reply@apple.com.verify-id.net</code>. The real domain is always what comes right before the last dot.
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-card-header">
+                    <div class="tip-icon orange"><i class="fa-solid fa-paperclip"></i></div>
+                    <div>
+                        <div class="tip-card-category">Attachments</div>
+                        <h3 class="tip-card-title">Never open unexpected attachments</h3>
+                    </div>
+                </div>
+                <p class="tip-card-body">Malware is often delivered as Word documents, PDFs, or ZIP files disguised as invoices, delivery notices, or job offers. When in doubt, verify with the sender directly.</p>
+                <div class="tip-card-example">
+                    <strong>High-risk file types:</strong> <code>.exe</code>, <code>.docm</code>, <code>.xlsm</code>, <code>.js</code>, <code>.vbs</code> — macros inside Office files are a common entry point.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RED FLAGS ── -->
+        <div class="section-title"><i class="fa-solid fa-flag"></i> Red Flags to Watch For</div>
+        <div class="redflags-grid">
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Domain name uses numbers substituted for letters (0 for o, 1 for l)</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>URL has an unusual number of subdomains (e.g. login.verify.bank.com.evil.net)</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Email contains spelling mistakes or awkward grammar</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Message creates urgent pressure to act immediately</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Request for sensitive info like passwords, OTPs, or card numbers</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Logos look stretched, blurry, or slightly off-colour</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Link destination doesn't match what the email describes</span></div>
+            <div class="redflag-row"><i class="fa-solid fa-circle-xmark"></i><span>Sender address uses a free webmail domain for an official communication</span></div>
+        </div>
+
+        <!-- ── INTERACTIVE CHECKLIST ── -->
+        <div class="section-title"><i class="fa-solid fa-list-check"></i> Before You Click — Checklist</div>
+        <div class="checklist">
+            <div class="checklist-header">
+                <i class="fa-solid fa-shield-check"></i>
+                <div>
+                    <h3>Quick Safety Check</h3>
+                    <p>Run through this before acting on any unexpected message or link.</p>
+                </div>
+            </div>
+            <div class="checklist-items" id="checklistItems">
+                <label class="checklist-item" id="ci0">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>I hovered over the link and the destination URL looks legitimate</span>
+                </label>
+                <label class="checklist-item" id="ci1">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>The domain name has no suspicious typos, extra words, or substituted characters</span>
+                </label>
+                <label class="checklist-item" id="ci2">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>The sender's email address matches the official domain of the company</span>
+                </label>
+                <label class="checklist-item" id="ci3">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>The message doesn't pressure me to act urgently or threatens consequences</span>
+                </label>
+                <label class="checklist-item" id="ci4">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>I'm not being asked to enter a password, OTP, or card number</span>
+                </label>
+                <label class="checklist-item" id="ci5">
+                    <input type="checkbox" onchange="updateChecklist()">
+                    <span>I scanned the URL with PhishX and it returned a safe result</span>
+                </label>
+            </div>
+            <div class="checklist-progress">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+                </div>
+                <span class="progress-label" id="progressLabel">0 / 6 checked</span>
+            </div>
+        </div>
+
+        <!-- ── LIVE SECURITY NEWS ── -->
+        <div class="section-block" id="newsSection">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-newspaper"></i></div>
+                <div>
+                    <h2 class="section-title">Latest Security News</h2>
+                    <p class="section-sub">Live updates from trusted cybersecurity sources</p>
+                </div>
+                <div class="news-sources-row" id="newsSourcePills"></div>
+            </div>
+
+            <div class="news-grid" id="newsGrid">
+                <!-- Skeleton loaders -->
+                <div class="news-skeleton"></div>
+                <div class="news-skeleton"></div>
+                <div class="news-skeleton"></div>
+                <div class="news-skeleton"></div>
+                <div class="news-skeleton"></div>
+                <div class="news-skeleton"></div>
+            </div>
+
+            <div class="news-error" id="newsError" style="display:none">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span id="newsErrorText">Could not load news feeds. Check your internet connection.</span>
+            </div>
+        </div>
+
+        <!-- ── CTA ── -->
+        <div class="cta-footer">
+            <div>
+                <h2>Not sure about a link?</h2>
+                <p>Scan any URL instantly with PhishX — our model analyses 30 threat signals in seconds.</p>
+            </div>
+            <a href="{{ url_for('index') }}" class="cta-footer-btn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Scan a URL now
+            </a>
+        </div>
+
+    </div><!-- /page-wrap -->
+
+    <footer style="text-align:center;padding:24px 32px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)">
+        &copy; 2024 PhishX. All rights reserved.
+    </footer>
+
+    <script>
+        // Dark mode
+        (function () {
+            const root = document.documentElement;
+            const stored = localStorage.getItem('sentinel-theme');
+            if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('dark');
+            document.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('themeToggle');
+                if (btn) btn.addEventListener('click', () => {
+                    root.classList.toggle('dark');
+                    localStorage.setItem('sentinel-theme', root.classList.contains('dark') ? 'dark' : 'light');
+                });
+                // Mobile menu
+                const menuBtn = document.getElementById('mobileMenuBtn');
+                const mobileNav = document.getElementById('mobileNav');
+                if (menuBtn && mobileNav) {
+                    menuBtn.addEventListener('click', () => {
+                        const open = mobileNav.classList.toggle('is-open');
+                        menuBtn.setAttribute('aria-expanded', open);
+                        menuBtn.querySelector('i').className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+                    });
+                }
+            });
+        })();
+
+        // Checklist
+        function updateChecklist() {
+            const items  = document.querySelectorAll('.checklist-item');
+            const checks = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+            let count = 0;
+            checks.forEach((cb, i) => {
+                const item = items[i];
+                if (cb.checked) { count++; item.classList.add('checked'); }
+                else { item.classList.remove('checked'); }
+            });
+            const total = checks.length;
+            const pct   = Math.round((count / total) * 100);
+            document.getElementById('progressBar').style.width  = pct + '%';
+            document.getElementById('progressLabel').textContent = count + ' / ' + total + ' checked';
+            document.getElementById('progressBar').style.background =
+                count === total ? '#059669' : count >= total / 2 ? 'var(--primary)' : 'var(--warn)';
+        }
+        // ── LIVE SECURITY NEWS ──────────────────────────────────────
+        const NEWS_FEEDS = [
+            { name: 'The Hacker News', url: 'https://feeds.feedburner.com/TheHackersNews', color: '#e74c3c' },
+            { name: 'BleepingComputer', url: 'https://www.bleepingcomputer.com/feed/', color: '#2980b9' },
+            { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/feed/', color: '#27ae60' },
+            { name: 'SecurityWeek', url: 'https://www.securityweek.com/feed', color: '#8e44ad' },
+        ];
+
+        // Kept client-side purely to build the source-filter pills (name/color);
+        // the actual fetching now happens server-side in /api/news.
+        let allArticles = [];
+        let activeSource = 'All';
+
+        function timeAgo(dateStr) {
+            const diff = Date.now() - new Date(dateStr).getTime();
+            const mins  = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days  = Math.floor(diff / 86400000);
+            if (mins < 60)  return mins + 'm ago';
+            if (hours < 24) return hours + 'h ago';
+            return days + 'd ago';
+        }
+
+        function stripHtml(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        }
+
+        function renderNews(articles) {
+            const grid = document.getElementById('newsGrid');
+            if (!articles.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)">No articles found.</div>';
+                return;
+            }
+            grid.innerHTML = articles.slice(0, 9).map((a, i) => `
+                <a class="news-card" href="${a.link}" target="_blank" rel="noopener noreferrer"
+                   style="animation-delay:${i * 40}ms">
+                    <div class="news-card-source">
+                        <span class="news-card-source-dot" style="background:${a.color}"></span>
+                        ${a.source}
+                    </div>
+                    <div class="news-card-title">${a.title}</div>
+                    <div class="news-card-desc">${stripHtml(a.description).slice(0, 180)}…</div>
+                    <div class="news-card-footer">
+                        <span>${a.pubDate ? timeAgo(a.pubDate) : ''}</span>
+                        <span class="news-read-more">Read more →</span>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function filterBySource(source) {
+            activeSource = source;
+            document.querySelectorAll('.news-source-pill').forEach(p => {
+                p.classList.toggle('active', p.dataset.source === source);
+            });
+            const filtered = source === 'All'
+                ? allArticles
+                : allArticles.filter(a => a.source === source);
+            renderNews(filtered);
+        }
+
+        function buildSourcePills() {
+            const wrap = document.getElementById('newsSourcePills');
+            const sources = ['All', ...NEWS_FEEDS.map(f => f.name)];
+            wrap.innerHTML = sources.map(s => `
+                <span class="news-source-pill ${s === 'All' ? 'active' : ''}"
+                      data-source="${s}" onclick="filterBySource('${s}')">${s}</span>
+            `).join('');
+        }
+
+        async function loadNews() {
+            const grid  = document.getElementById('newsGrid');
+            const error = document.getElementById('newsError');
+            buildSourcePills();
+
+            try {
+                // Fetch through our own backend (/api/news) instead of a third-party
+                // JSON proxy. This avoids browser CORS restrictions entirely and
+                // isn't subject to rss2json's API-key requirement or shared quota.
+                const res = await fetch('/api/news');
+                if (!res.ok) throw new Error(`/api/news HTTP ${res.status}`);
+                const data = await res.json();
+
+                allArticles = (data.articles || []).map(a => ({
+                    title:       a.title,
+                    link:        a.link,
+                    description: a.description,
+                    pubDate:     a.pubDate,
+                    source:      a.source,
+                    color:       a.color,
+                }));
+
+                if (data.failed && data.failed.length) {
+                    console.warn('[news] These feeds failed server-side:', data.failed.join(', '));
+                }
+            } catch (err) {
+                console.error('[news] Failed to load /api/news:', err.message);
+            }
+
+            // Sort newest first
+            allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+            if (!allArticles.length) {
+                grid.innerHTML = '';
+                error.style.display = 'flex';
+                const errorText = document.getElementById('newsErrorText');
+                errorText.textContent = 'Could not load news feeds right now. Check the console for details, or try again shortly.';
+                return;
+            }
+
+            renderNews(allArticles);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadNews);
+    </script>
+</body>
+</html>

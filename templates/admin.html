@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishX — Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:        #f5f5f4;
+            --surface:   #ffffff;
+            --surface2:  #f0efec;
+            --line:      #e4e2de;
+            --ink:       #1c1917;
+            --ink2:      #292524;
+            --muted:     #57534e;
+            --muted2:    #a8a29e;
+            --accent:    #334155;      /* slate — replaces blue */
+            --accent-h:  #1e293b;
+            --accent-s:  #f1f5f9;
+            --danger:    #b91c1c;
+            --danger-s:  #fee2e2;
+            --safe:      #15803d;
+            --safe-s:    #dcfce7;
+            --warn:      #b45309;
+            --warn-s:    #fef3c7;
+            --sidebar-bg:#1c1917;
+            --sidebar-w: 220px;
+            --radius:    8px;
+            --shadow:    0 1px 3px rgba(0,0,0,.06), 0 4px 12px -4px rgba(0,0,0,.08);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; min-height: 100vh; }
+        a { text-decoration: none; color: inherit; }
+        button { font-family: inherit; cursor: pointer; }
+
+        /* ── SIDEBAR ── */
+        .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); min-height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; padding-bottom: 1.5rem; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 1.4rem 1.25rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.06); margin-bottom: 0.5rem; }
+        .sidebar-logo-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; font-weight: 700; }
+        .sidebar-logo-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+        .sidebar-logo-badge { font-size: 0.58rem; color: #78716c; background: rgba(255,255,255,.05); padding: 2px 6px; border-radius: 4px; margin-left: auto; letter-spacing: 0.3px; }
+        .sidebar-sep { height: 1px; background: rgba(255,255,255,.05); margin: 0.4rem 1.25rem; }
+        .sidebar-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #57534e; padding: 0.8rem 1.25rem 0.3rem; }
+        .nav-item { display: flex; align-items: center; gap: 9px; padding: 0.55rem 1rem; font-size: 0.83rem; font-weight: 500; color: #78716c; transition: all .15s; cursor: pointer; position: relative; margin: 1px 0.6rem; border-radius: 6px; }
+        .nav-item:hover { background: rgba(255,255,255,.05); color: #d6d3d1; }
+        .nav-item.active { background: rgba(51,65,85,.4); color: #e7e5e4; }
+        .nav-item.active::before { content: ''; position: absolute; left: -0.6rem; top: 25%; bottom: 25%; width: 2px; background: #94a3b8; border-radius: 0 2px 2px 0; }
+        .nav-item i { width: 15px; text-align: center; font-size: 0.78rem; flex-shrink: 0; }
+        .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+        .sidebar-footer { margin-top: auto; padding: 0 0.6rem; }
+        .logout-btn { display: flex; align-items: center; gap: 9px; width: 100%; padding: 0.6rem 1rem; background: rgba(185,28,28,.08); border: 1px solid rgba(185,28,28,.15); border-radius: 6px; color: #fca5a5; font-size: 0.83rem; font-weight: 600; transition: all .2s; }
+        .logout-btn:hover { background: rgba(185,28,28,.15); }
+
+        /* ── MAIN ── */
+        .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+
+        /* ── TOPBAR ── */
+        .topbar { background: var(--surface); border-bottom: 1px solid var(--line); padding: 0 1.75rem; height: 54px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .topbar-left { display: flex; align-items: center; gap: 0.75rem; }
+        .hamburger-btn { display: none; width: 32px; height: 32px; background: var(--surface2); border: 1px solid var(--line); border-radius: 6px; align-items: center; justify-content: center; color: var(--muted); font-size: 0.85rem; flex-shrink: 0; }
+        .breadcrumb { font-size: 0.8rem; color: var(--muted2); display: flex; align-items: center; gap: 5px; }
+        .breadcrumb span:last-child { color: var(--ink); font-weight: 600; }
+        .breadcrumb-sep { color: var(--line); }
+        .topbar-right { display: flex; align-items: center; gap: 0.6rem; }
+        .admin-pill { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px 4px 4px; font-size: 0.78rem; font-weight: 600; color: var(--ink2); }
+        .admin-avatar { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.65rem; font-weight: 700; }
+
+        /* ── PAGE ── */
+        .page { padding: 1.5rem 1.75rem 3rem; }
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .page-title { font-size: 1.15rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+        .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; transition: all .15s; }
+        .back-link:hover { color: var(--ink); border-color: var(--muted2); }
+
+        /* ── STAT CARDS ── */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.25rem; box-shadow: var(--shadow); }
+        .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted2); margin-bottom: 6px; }
+        .stat-value { font-size: 1.9rem; font-weight: 800; color: var(--ink); line-height: 1; letter-spacing: -1px; margin-bottom: 6px; }
+        .stat-trend { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+        .stat-trend i { font-size: 0.65rem; }
+
+        /* ── PANELS ── */
+        .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.1rem; margin-bottom: 1.1rem; }
+        .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--line); }
+        .panel-title { font-size: 0.83rem; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 7px; }
+        .panel-title i { color: var(--muted2); font-size: 0.75rem; }
+        .panel-count { font-size: 0.68rem; color: var(--muted2); background: var(--surface2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 99px; }
+        .panel-spacer { flex: 1; }
+
+        /* ── TABLES ── */
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted2); padding: 0.6rem 1.1rem; text-align: left; background: var(--surface2); border-bottom: 1px solid var(--line); }
+        td { padding: 0.65rem 1.1rem; font-size: 0.8rem; color: var(--ink); border-bottom: 1px solid var(--line); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: var(--surface2); }
+        .url-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+
+        /* ── BADGES ── */
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 4px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.2px; }
+        .badge-danger   { background: var(--danger-s); color: var(--danger); }
+        .badge-safe     { background: var(--safe-s);   color: var(--safe); }
+        .badge-warn     { background: var(--warn-s);   color: var(--warn); }
+        .badge-admin    { background: #e0e7ff; color: #3730a3; }
+        .badge-user     { background: var(--surface2); color: var(--muted); border: 1px solid var(--line); }
+        .badge-pending  { background: var(--warn-s);  color: var(--warn); }
+        .badge-resolved { background: var(--safe-s);  color: var(--safe); }
+
+        /* ── ACTION BUTTONS ── */
+        .action-btn { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 0.7rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: all .15s; font-family: inherit; }
+        .action-btn.resolve { background: var(--safe-s); color: var(--safe); border-color: rgba(21,128,61,.2); }
+        .action-btn.resolve:hover { background: #bbf7d0; }
+        .action-btn.promote { background: #e0e7ff; color: #3730a3; border-color: rgba(55,48,163,.15); }
+        .action-btn.promote:hover { background: #c7d2fe; }
+        .action-btn.danger  { background: var(--danger-s); color: var(--danger); border-color: rgba(185,28,28,.2); }
+        .action-btn.danger:hover { background: #fecaca; }
+
+        /* ── USER ROW ── */
+        .user-row-info { display: flex; align-items: center; gap: 9px; }
+        .user-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+        .user-name  { font-size: 0.8rem; font-weight: 600; color: var(--ink); }
+        .user-email { font-size: 0.7rem; color: var(--muted2); }
+
+        /* ── RISK BAR ── */
+        .risk-bar-wrap { display: flex; align-items: center; gap: 7px; }
+        .risk-bar-bg   { flex: 1; height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; }
+        .risk-bar-fill { height: 100%; border-radius: 99px; }
+        .risk-val { font-size: 0.72rem; font-weight: 700; width: 30px; text-align: right; }
+
+        /* ── FLASH ── */
+        .flash-wrap { margin-bottom: 1rem; }
+        .flash { display: flex; align-items: center; gap: 9px; padding: 0.65rem 1rem; border-radius: var(--radius); font-size: 0.8rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .flash-success { background: var(--safe-s);   color: var(--safe);   border: 1px solid rgba(21,128,61,.2); }
+        .flash-error   { background: var(--danger-s); color: var(--danger); border: 1px solid rgba(185,28,28,.2); }
+        .flash-info    { background: var(--accent-s); color: var(--accent); border: 1px solid rgba(51,65,85,.2); }
+
+        /* ── EMPTY ── */
+        .empty-row td { text-align: center; padding: 2.5rem; color: var(--muted2); font-size: 0.8rem; }
+        .section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted2); margin-bottom: 0.6rem; padding-left: 2px; }
+
+        /* ── MOBILE OVERLAY ── */
+        .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 90; }
+        .mobile-overlay.active { display: block; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1100px) { .content-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) {
+            .hamburger-btn { display: flex; }
+            .sidebar { transform: translateX(-100%); transition: transform .25s ease; z-index: 110; box-shadow: 8px 0 24px rgba(0,0,0,.3); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .page { padding: 1.1rem 1rem 2.5rem; }
+            .topbar { padding: 0 1rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        }
+        @media (max-width: 520px) { .stats-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-mark">▰</div>
+        <span class="sidebar-logo-name">PhishX</span>
+        <span class="sidebar-logo-badge">Admin</span>
+    </div>
+
+    <span class="sidebar-section-label">Overview</span>
+    <a class="nav-item active" href="{{ url_for('admin_dashboard') }}">
+        <i class="fa-solid fa-gauge-simple-high"></i> Dashboard
+    </a>
+
+    <span class="sidebar-section-label">Management</span>
+    <a class="nav-item" href="{{ url_for('admin_dashboard') }}#users">
+        <i class="fa-solid fa-users"></i> Users
+        <span class="nav-badge">{{ total_users }}</span>
+    </a>
+    <a class="nav-item" href="{{ url_for('admin_dashboard') }}#reports">
+        <i class="fa-solid fa-flag"></i> Reports
+        {% if pending_reports > 0 %}<span class="nav-badge">{{ pending_reports }}</span>{% endif %}
+    </a>
+
+    <div class="sidebar-sep"></div>
+
+    <a class="nav-item" href="{{ url_for('index') }}">
+        <i class="fa-solid fa-arrow-left"></i> Back to App
+    </a>
+
+    <div class="sidebar-footer">
+        <a class="logout-btn" href="{{ url_for('logout') }}">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="breadcrumb">
+                <span>PhishX</span>
+                <span class="breadcrumb-sep">/</span>
+                <span>Admin Dashboard</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="admin-pill">
+                <div class="admin-avatar">{{ current_user.username[0].upper() }}</div>
+                {{ current_user.username }}
+            </div>
+            <a href="{{ url_for('index') }}" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i> Back to App
+            </a>
+        </div>
+    </header>
+
+    <div class="page">
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">Admin Dashboard</div>
+                <div class="page-sub">Manage users, scans, and community reports</div>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">
+                    <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'error' %}fa-circle-xmark{% else %}fa-circle-info{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- STAT CARDS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-trend"><i class="fa-solid fa-users"></i> Registered accounts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Scans</div>
+                <div class="stat-value">{{ total_scans }}</div>
+                <div class="stat-trend"><i class="fa-solid fa-magnifying-glass"></i> All time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Flagged URLs</div>
+                <div class="stat-value" style="color:var(--danger)">{{ flagged_scans }}</div>
+                <div class="stat-trend"><i class="fa-solid fa-triangle-exclamation"></i> Phishing detected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Reports</div>
+                <div class="stat-value" style="color:var(--warn)">{{ pending_reports }}</div>
+                <div class="stat-trend"><i class="fa-solid fa-clock"></i> Awaiting review</div>
+            </div>
+        </div>
+
+        <!-- SCANS + USERS -->
+        <div class="content-grid">
+
+            <!-- RECENT SCANS -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Recent Scans
+                        <span class="panel-count">Last 10</span>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Risk</th>
+                            <th>Result</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scan in recent_scans %}
+                        <tr>
+                            <td class="url-cell" title="{{ scan.url }}">{{ scan.url }}</td>
+                            <td data-label="Risk">
+                                <div class="risk-bar-wrap">
+                                    <div class="risk-bar-bg">
+                                        <div class="risk-bar-fill" style="width:{{ scan.risk_score }}%;background:{% if scan.risk_score > 60 %}var(--danger){% elif scan.risk_score > 35 %}#d97706{% else %}var(--safe){% endif %}"></div>
+                                    </div>
+                                    <span class="risk-val" style="color:{% if scan.risk_score > 60 %}var(--danger){% elif scan.risk_score > 35 %}#d97706{% else %}var(--safe){% endif %}">{{ scan.risk_score }}%</span>
+                                </div>
+                            </td>
+                            <td data-label="Result">
+                                {% if scan.is_phishing %}
+                                    <span class="badge badge-danger">Phishing</span>
+                                {% else %}
+                                    <span class="badge badge-safe">Safe</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="User" style="color:var(--muted);font-size:0.75rem">{{ scan.user.username if scan.user else 'Guest' }}</td>
+                            <td data-label="Date" style="color:var(--muted2);font-size:0.72rem;white-space:nowrap">{{ scan.scanned_at.strftime('%d %b %H:%M') }}</td>
+                            <td data-label="">
+                                <form method="POST" action="{{ url_for('admin_delete_scan', scan_id=scan.id) }}"
+                                      style="display:inline" onsubmit="return confirm('Delete this scan permanently?')">
+                                    <button class="action-btn danger" type="submit">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-row"><td colspan="6">No scans yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- USERS -->
+            <div class="panel" id="users">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-users"></i> Users
+                        <span class="panel-count">{{ total_users }} total</span>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>User</th><th>Role</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="user-row-info">
+                                    <div class="user-avatar">{{ user.username[0].upper() }}</div>
+                                    <div>
+                                        <div class="user-name">{{ user.username }}</div>
+                                        <div class="user-email">{{ user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-{{ user.role }}">{{ user.role | title }}</span></td>
+                            <td style="white-space:nowrap">
+                                {% if user.role != 'admin' %}
+                                <form method="POST" action="{{ url_for('make_admin', user_id=user.id) }}" style="display:inline">
+                                    <button class="action-btn promote" type="submit">
+                                        <i class="fa-solid fa-arrow-up"></i> Promote
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('admin_clear_user_history', user_id=user.id) }}"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Delete ALL scan history for {{ user.username }}?')">
+                                    <button class="action-btn danger" type="submit">
+                                        <i class="fa-solid fa-trash-can"></i> Clear History
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-row"><td colspan="3">No users yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div class="section-label" id="reports">Community Reports</div>
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fa-solid fa-flag"></i> Reported URLs
+                    <span class="panel-count">{{ pending_reports }} pending</span>
+                </div>
+                <span style="font-size:0.72rem;color:var(--muted)">Users flag scan results they believe are incorrect</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>URL</th>
+                        <th>Reason</th>
+                        <th>Note</th>
+                        <th>Reporter</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in recent_reports %}
+                    <tr>
+                        <td style="color:var(--muted2);font-size:0.72rem">#{{ report.id }}</td>
+                        <td class="url-cell" title="{{ report.scan.url }}">{{ report.scan.url }}</td>
+                        <td><span class="badge badge-warn">{{ report.reason | replace('_',' ') | title }}</span></td>
+                        <td style="color:var(--muted);font-size:0.75rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ report.note or '—' }}</td>
+                        <td style="color:var(--muted);font-size:0.75rem">{{ report.user.username if report.user else 'Guest' }}</td>
+                        <td style="color:var(--muted2);font-size:0.72rem;white-space:nowrap">{{ report.reported_at.strftime('%d %b %H:%M') }}</td>
+                        <td><span class="badge badge-{{ report.status }}">{{ report.status | title }}</span></td>
+                        <td>
+                            {% if report.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('resolve_report', report_id=report.id) }}" style="display:inline">
+                                <button class="action-btn resolve" type="submit">
+                                    <i class="fa-solid fa-check"></i> Resolve
+                                </button>
+                            </form>
+                            {% else %}
+                            <span style="color:var(--muted2);font-size:0.72rem">Resolved</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row"><td colspan="8">No reports submitted yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Hamburger
+    const sidebar   = document.getElementById('sidebar');
+    const overlay   = document.getElementById('mobileOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (hamburger) {
+        hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('active'); });
+        overlay.addEventListener('click',   () => { sidebar.classList.remove('open'); overlay.classList.remove('active'); });
+    }
+
+    // Anchor scroll for sidebar links
+    document.querySelectorAll('.nav-item[href*="#"]').forEach(link => {
+        link.addEventListener('click', e => {
+            const hash = link.getAttribute('href').split('#')[1];
+            const el   = document.getElementById(hash);
+            if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        });
+    });
+</script>
+</body>
+</html>

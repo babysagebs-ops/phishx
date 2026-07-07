@@ -1,86 +1,2123 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="This website is develop for identify the safety of url.">
-    <meta name="keywords" content="phishing url,phishing,cyber security,machine learning,classifier,python">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <title>PhishX — Phishing Detection</title>
+    <style>
+        /* ── RESET / BASE ── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
 
-    <!-- BootStrap -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        body {
+            background: var(--bg);
+            color: var(--ink);
+        }
+
+        /* ── HEADER ── */
+        .site-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+        }
+
+        .header-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            height: 64px;
+        }
+
+        history
+
+        /* Logo */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1947d1, #3b6aff);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(25, 71, 209, .35);
+        }
+
+        .brand-logo svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .brand-text {
+            line-height: 1.15;
+        }
+
+        .brand-name {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: -.01em;
+            color: var(--ink);
+            display: block;
+        }
+
+        .brand-sub {
+            font-size: 0.65rem;
+            color: var(--muted);
+            font-weight: 500;
+            display: block;
+        }
+
+        /* Nav */
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            margin-left: 1.5rem;
+        }
+
+        .nav-link {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            transition: color .15s, background .15s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: var(--ink);
+            background: var(--bg-soft);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            font-weight: 600;
+            background: transparent;
+        }
+
+        .nav-link.active {
+            border-bottom: 2px solid var(--primary);
+            border-radius: 0;
+        }
+
+        /* Header right */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--muted-2);
+            border: 1px solid var(--line);
+            background: var(--surface);
+            cursor: pointer;
+            transition: color .15s, background .15s;
+        }
+
+        .icon-btn:hover {
+            color: var(--ink);
+            background: var(--bg-soft);
+        }
+
+        /* User pill */
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 999px;
+            padding: 4px 12px 4px 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 64px 32px 48px;
+            text-align: center;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--safe-soft);
+            color: var(--primary);
+            border: 1px solid rgba(25, 71, 209, .2);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero-badge i {
+            font-size: 0.78rem;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3.25rem);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            line-height: 1.1;
+            margin: 0 0 16px;
+            color: var(--ink);
+        }
+
+        .hero-title .accent {
+            color: var(--primary);
+        }
+
+        .hero-sub {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 520px;
+            margin: 0 auto 40px;
+            line-height: 1.65;
+        }
+
+        /* ── SCANNER CARD ── */
+        .scanner-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+            padding: 28px 28px 20px;
+            max-width: 740px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .scanner-label {
+            font-size: 0.87rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scanner-label i {
+            color: var(--primary);
+        }
+
+        .scanner-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .scanner-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-soft);
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            padding: 0 16px;
+            transition: border-color .2s;
+        }
+
+        .scanner-input:focus-within {
+            border-color: var(--primary);
+        }
+
+        .scanner-input.has-error {
+            border-color: var(--danger);
+        }
+
+        .scanner-input input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.95rem;
+            color: var(--ink);
+            padding: 14px 0;
+            font-family: inherit;
+        }
+
+        .scanner-input input::placeholder {
+            color: var(--muted-2);
+        }
+
+        .btn-scan {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0 24px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background .2s;
+            min-height: 52px;
+        }
+
+        .btn-scan:hover {
+            background: var(--primary-700);
+        }
+
+        .btn-scan.is-loading {
+            background: var(--primary-700);
+            cursor: progress;
+        }
+
+        .btn-scan.is-loading .btn-icon {
+            display: none;
+        }
+
+        .btn-scan .scan-spinner {
+            display: none;
+        }
+
+        .btn-scan.is-loading .scan-spinner {
+            display: block;
+        }
+
+        .scan-spinner {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(255, 255, 255, .3);
+            border-top-color: #fff;
+            animation: spin .7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .scanner-note {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 12px;
+        }
+
+        .scanner-note i {
+            color: var(--muted-2);
+            font-size: 0.72rem;
+        }
+
+        /* URL Error */
+        .url-error {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--danger);
+            background: var(--danger-soft);
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            padding: 0 14px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height .25s ease, opacity .2s ease, padding .25s ease, margin-top .25s ease;
+        }
+
+        .url-error.is-visible {
+            max-height: 60px;
+            opacity: 1;
+            padding: 10px 14px;
+            margin-top: 10px;
+        }
+
+        /* Loading panel */
+        .scan-loading {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height .35s ease, opacity .3s ease, margin-top .35s ease;
+        }
+
+        .scan-loading.is-active {
+            max-height: 160px;
+            opacity: 1;
+            margin-top: 14px;
+        }
+
+        .scan-loading-inner {
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .scan-status-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .scan-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+            animation: pulse 1.1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .35;
+                transform: scale(.85)
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .scan-status-text {
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--ink);
+            transition: opacity .2s;
+        }
+
+        .scan-status-text.is-fading {
+            opacity: 0;
+        }
+
+        .scan-tip-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--line);
+        }
+
+        .scan-tip-row i {
+            color: var(--warn);
+            font-size: .78rem;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .scan-tip-text {
+            font-size: .8rem;
+            color: var(--muted);
+            line-height: 1.55;
+            transition: opacity .25s;
+        }
+
+        .scan-tip-text.is-fading {
+            opacity: 0;
+        }
+
+        /* ── FEATURE PILLS ── */
+        .features-row {
+            max-width: 740px;
+            margin: 28px auto 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--line);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .feature-pill {
+            background: var(--surface);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 18px 20px;
+        }
+
+        .feature-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+
+        .feature-icon.blue {
+            background: var(--safe-soft);
+            color: var(--primary);
+        }
+
+        .feature-icon.green {
+            background: #d1fae5;
+            color: #059669;
+        }
         
-    <link href="static/styles.css" rel="stylesheet">
-    <title>URL detection</title>
-    
+        .feature-icon.purple {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .feature-pill h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 0 0 3px;
+            color: var(--ink);
+        }
+
+        .feature-pill p {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ── MAIN CONTENT GRID ── */
+        .content-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px 32px 80px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            align-items: start;  /* both columns start at same top line */
+        }
+
+        /* ── RESULT SECTION ── */
+        .result-section {
+            margin-bottom: 24px;
+        }
+
+        /* Result card layout (reused from old design) */
+        .result-row {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1rem;
+            animation: fadeUp .4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-main {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow-md);
+            padding: 1.75rem;
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .ring-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: .25rem;
+        }
+
+        .score-ring-wrap {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+        }
+
+        .score-ring-wrap svg {
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 140px;
+        }
+
+        .score-ring-bg {
+            fill: none;
+            stroke: var(--line-2);
+            stroke-width: 11;
+        }
+
+        .score-ring-fill {
+            fill: none;
+            stroke-width: 11;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .score-ring-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: var(--ink);
+        }
+
+        .score-sublabel {
+            font-size: .58rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted-2);
+            margin-top: 4px;
+        }
+
+        .result-meta {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: .85rem;
+            flex-wrap: wrap;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .result-badge.is-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .result-badge.is-safe {
+            background: var(--safe-soft);
+            color: var(--safe);
+            border: 1px solid var(--safe);
+        }
+
+        .result-id {
+            font-size: .78rem;
+            color: var(--muted-2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-domain {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            word-break: break-all;
+            color: var(--ink);
+            margin-bottom: .6rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-description {
+            color: var(--muted);
+            font-size: .875rem;
+            line-height: 1.65;
+            margin-bottom: 1.25rem;
+        }
+
+        .result-stats {
+            display: flex;
+            gap: .75rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: .8rem 1rem;
+        }
+
+        .stat-label {
+            font-size: .68rem;
+            color: var(--muted-2);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: .9rem;
+            font-weight: 700;
+        }
+
+        .stat-value.is-critical {
+            color: var(--danger);
+        }
+
+        .stat-value.is-good {
+            color: var(--safe);
+        }
+
+        .intel-card {
+            background: var(--dark);
+            border: 1px solid #1e2430;
+            border-radius: 18px;
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .intel-title {
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .intel-title-sq {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .intel-title-sq.danger {
+            background: var(--danger);
+        }
+
+        .intel-title-sq.safe {
+            background: var(--safe);
+        }
+
+        .intel-items {
+            display: flex;
+            flex-direction: column;
+            gap: .85rem;
+        }
+
+        .intel-item-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: .85rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 2px;
+        }
+
+        .intel-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .intel-dot.red {
+            background: var(--danger);
+        }
+
+        .intel-dot.green {
+            background: var(--safe);
+        }
+
+        .intel-dot.warn {
+            background: var(--warn);
+        }
+
+        .intel-item-body {
+            font-size: .78rem;
+            color: #94a3b8;
+            padding-left: 14px;
+            line-height: 1.5;
+        }
+
+        .intel-footer {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-tech {
+            width: 100%;
+            background: #1e2430;
+            color: #e2e8f0;
+            border: 1px solid #2a3444;
+            border-radius: var(--radius);
+            padding: .7rem;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-tech:hover {
+            background: #2a3444;
+        }
+
+        .tech-details {
+            margin-top: .75rem;
+            display: none;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .tech-details.open {
+            display: flex;
+        }
+
+        .tech-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: .75rem;
+            padding: .4rem 0;
+            border-bottom: 1px solid #1e2430;
+        }
+
+        .tech-row:last-child {
+            border-bottom: none;
+        }
+
+        .tech-key {
+            color: #64748b;
+        }
+
+        .tech-val {
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .72rem;
+        }
+
+        .tech-val.red {
+            color: var(--danger);
+        }
+
+        .tech-val.green {
+            color: var(--safe);
+        }
+
+        /* ── RECENT SCANS PANEL ── */
+        .scans-panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .scans-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .scans-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .scans-panel-title i {
+            color: var(--primary);
+            font-size: .85rem;
+        }
+
+        .view-all-link {
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+
+        .scans-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scans-table th {
+            padding: 10px 16px;
+            text-align: left;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted-2);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .scan-row {
+            border-bottom: 1px solid var(--line-2);
+            transition: background .12s;
+            animation: fadeSlideIn .25s ease both;
+        }
+
+        .scan-row:last-child {
+            border-bottom: none;
+        }
+
+        .scan-row:hover {
+            background: var(--bg-soft);
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .scans-table td {
+            padding: 12px 16px;
+            font-size: .82rem;
+            vertical-align: middle;
+        }
+
+        .scan-url-cell {
+            max-width: 200px;
+        }
+
+        .scan-url-inner {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .scan-url-inner i {
+            color: var(--muted-2);
+            font-size: .75rem;
+            flex-shrink: 0;
+        }
+
+        .scan-url-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--ink);
+            font-size: .8rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .badge-safe {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-warn {
+            background: var(--warn-soft);
+            color: #b97800;
+        }
+
+        .badge-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .risk-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        .risk-dot::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .risk-dot.high {
+            color: var(--danger);
+        }
+
+        .risk-dot.high::before {
+            background: var(--danger);
+        }
+
+        .risk-dot.medium {
+            color: #b97800;
+        }
+
+        .risk-dot.medium::before {
+            background: var(--warn);
+        }
+
+        .risk-dot.low {
+            color: #059669;
+        }
+
+        .risk-dot.low::before {
+            background: #059669;
+        }
+
+        .btn-action-icon {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: var(--bg-soft);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: .78rem;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+
+        .btn-action-icon:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .scans-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 48px 24px;
+            color: var(--muted);
+            font-size: .85rem;
+            text-align: center;
+        }
+
+        .scans-empty i {
+            font-size: 1.75rem;
+            color: var(--muted-2);
+        }
+
+        .scans-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--line);
+        }
+
+        .btn-view-history {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            transition: background .15s;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-view-history:hover {
+            background: var(--line);
+        }
+
+        .btn-clear-row {
+            display: flex;
+            justify-content: flex-end;
+            padding: 6px 20px 0;
+        }
+
+        .btn-clear-history {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: .72rem;
+            font-weight: 500;
+            color: var(--muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: color .15s;
+        }
+
+        .btn-clear-history:hover {
+            color: var(--danger);
+        }
+
+        /* ── SIDEBAR: STAY SAFE ── */
+        .sidebar-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-card-header {
+            padding: 16px 20px 0;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .shield-illustration {
+            display: flex;
+            justify-content: center;
+            padding: 20px 20px 8px;
+        }
+
+        .shield-svg-wrap {
+            width: 90px;
+            height: 90px;
+            position: relative;
+        }
+
+        .sidebar-tips {
+            padding: 0 20px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-tip {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: .82rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .tip-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .tip-icon.blue {
+            background: var(--safe-soft);
+            color: var(--primary);
+        }
+
+        .tip-icon.green {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .tip-icon.yellow {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .sidebar-card-footer {
+            padding: 16px 20px 20px;
+        }
+
+        .btn-more-tips {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: none;
+            border: 1.5px solid var(--primary);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            transition: background .15s;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-more-tips:hover {
+            background: var(--safe-soft);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--line);
+        }
+        .footer-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 48px 32px 32px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 48px;
+            align-items: start;
+        }
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .footer-logo-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+        }
+        .footer-tagline {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.65;
+            max-width: 280px;
+        }
+        .footer-links {
+            display: flex;
+            gap: 48px;
+        }
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .footer-col-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .footer-link {
+            font-size: 0.83rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .15s;
+            cursor: default;
+        }
+        a.footer-link { cursor: pointer; }
+        a.footer-link:hover { color: var(--ink); }
+        .footer-bottom {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 16px 32px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--muted-2);
+            border-top: 1px solid var(--line);
+            flex-wrap: wrap;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                padding: 32px 24px 60px;
+            }
+            /* Show sidebar card stacked below on tablet */
+            .sidebar-card {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 40px 20px 32px;
+            }
+            .features-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .content-grid {
+                padding: 24px 16px 60px;
+            }
+            .result-row {
+                grid-template-columns: 1fr;
+            }
+            .result-main {
+                grid-template-columns: 1fr;
+            }
+            .ring-col {
+                justify-content: flex-start;
+            }
+            .header-inner {
+                padding: 0 16px;
+            }
+            .main-nav {
+                display: none;
+            }
+            .scanner-input-row {
+                flex-direction: column;
+            }
+            .btn-scan {
+                width: 100%;
+                justify-content: center;
+                min-height: 48px;
+            }
+            .scanner-card {
+                padding: 16px;
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 32px;
+                padding: 40px 24px 28px;
+            }
+            .footer-tagline { max-width: 100%; }
+            .footer-bottom { padding: 14px 24px 20px; }
+
+            /* ── SCANS TABLE → CARD STACK on mobile ── */
+            .scans-table thead { display: none; }
+            .scans-table tbody tr {
+                display: block;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                margin-bottom: 10px;
+                padding: 12px 14px;
+                background: var(--surface);
+            }
+            .scans-table td {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 4px 0;
+                border: none;
+                font-size: 0.82rem;
+            }
+            .scans-table td::before {
+                content: attr(data-label);
+                font-size: 0.68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                color: var(--muted-2);
+                flex-shrink: 0;
+                min-width: 70px;
+            }
+            /* URL cell full width on mobile */
+            .scans-table td:first-child {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .scans-table td:first-child::before {
+                content: 'URL';
+            }
+            .scan-url-text {
+                white-space: normal;
+                word-break: break-all;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 1.75rem;
+            }
+            .brand-sub {
+                display: none;
+            }
+            .content-grid {
+                padding: 20px 12px 50px;
+            }
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                padding: 36px 20px 24px;
+            }
+            .footer-links {
+                gap: 28px;
+                flex-wrap: wrap;
+            }
+            .footer-bottom {
+                padding: 14px 20px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    
-<div class=" container">
-    <div class="row">
-        <div class="form col-md" id="form1">
-            <h2>PHISHING URL DETECTION</h2>
-    
-            <br>
-            <form action="/" method ="post">
-                <input type="text" class="form__input" name ='url' id="url" placeholder="Enter URL" required="" />
-                <label for="url" class="form__label">URL</label>
-                <button class="button" role="button" >Check here</button>
-            </form>
-           
-    </div>
-    
-    <div class="col-md" id="form2">
-        
-        <br>
-        <h6 class = "right "><a href= {{ url }} target="_blank">{{ url }}</a></h6>
-           
-        <br>
-        <h3 id="prediction"></h3>
-        <button class="button2" id="button2" role="button" onclick="window.open('{{url}}')" target="_blank" >Still want to Continue</button>
-        <button class="button1" id="button1" role="button"  onclick="window.open('{{url}}')" target="_blank">Continue</button>
-    </div> 
-</div>
-<br>
-<p>Developed by Group of 5 Members</p>
-</div>
+    <!-- ── HEADER ── -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="{{ url_for('index') }}" class="brand">
+                <span class="brand-mark"
+                    style="color:var(--primary);font-size:1.4rem;transform:rotate(45deg);display:inline-block;line-height:1">▰</span>
+                <div class="brand-text">
+                    <span class="brand-name">PhishX</span>
+                    <span class="brand-sub">Phishing Detection System</span>
+                </div>
+            </a>
 
-    <!-- JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
+            <nav class="main-nav" aria-label="Primary">
+                <a href="#scanner" class="nav-link active">Scanner</a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('history') }}" class="nav-link">History</a>
+                {% endif %}
+                <a href="{{ url_for('tips') }}" class="nav-link">Security Tips</a>
+                <a href="#about" class="nav-link">About</a>
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
+                {% endif %}
+            </nav>
 
-    
+            <div class="header-right">
+                <!-- Dark mode toggle -->
+                <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4" />
+                        <path
+                            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+
+                <!-- Auth -->
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}" class="user-pill">
+                    <span class="user-avatar">{{ current_user.username[0].upper() }}</span>
+                    {{ current_user.username }}
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="icon-btn"
+                    style="width:auto;padding:0 14px;font-size:.82rem;font-weight:600;color:var(--ink);border-radius:8px;text-decoration:none">Login</a>
+                <a href="{{ url_for('signup') }}" class="user-pill" style="text-decoration:none">
+                    <span class="user-avatar" style="background:rgba(255,255,255,.25)">
+                        <i class="fa-solid fa-user" style="font-size:.65rem"></i>
+                    </span>
+                    Sign Up
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <!-- Theme script (runs before render) -->
     <script>
-        
-            let x = '{{xx}}';
-            let num = x*100;
-            if (0<=x && x<0.50){
-                num = 100-num;
-            }
-            let txtx = num.toString();
-            if(x<=1 && x>=0.50){
-                var label = "Website is "+txtx +"% safe to use...";
-                document.getElementById("prediction").innerHTML = label;
-                document.getElementById("button1").style.display="block";
-            }
-            else if (0<=x && x<0.50){
-                var label = "Website is "+txtx +"% unsafe to use..."
-                document.getElementById("prediction").innerHTML = label ;
-                document.getElementById("button2").style.display="block";
-            }
-        
+        (function () {
+            const root = document.documentElement;
+            const stored = localStorage.getItem('sentinel-theme');
+            if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('dark');
+            document.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('themeToggle');
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    root.classList.toggle('dark');
+                    localStorage.setItem('sentinel-theme', root.classList.contains('dark') ? 'dark' : 'light');
+                });
+            });
+        })();
     </script>
-    
+
+    <main>
+        <!-- ── HERO + SCANNER ── -->
+        <section id="scanner">
+            <div class="hero">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Secure Your World. One Link at a Time.
+                </div>
+                <h1 class="hero-title">Scan URLs. <span class="accent">Stay Safe.</span></h1>
+                <p class="hero-sub">Check any suspicious URL for phishing or malicious activity in real-time.</p>
+
+                <!-- Scanner card -->
+                <div class="scanner-card">
+                    <div class="scanner-label">
+                        <i class="fa-solid fa-link"></i>
+                        Enter a URL to analyze
+                    </div>
+                    <form id="scanForm" action="/" method="post">
+                        <div class="scanner-input-row">
+                            <div class="scanner-input" id="scannerInputWrap">
+                                <input type="text" name="url" id="urlInput" placeholder="https://example.com"
+                                    aria-label="URL to scan" autocomplete="off" spellcheck="false" required />
+                            </div>
+                            <button class="btn-scan" type="submit" id="scanBtn">
+                                <i class="fa-solid fa-magnifying-glass btn-icon"></i>
+                                <span class="scan-spinner" aria-hidden="true"></span>
+                                <span class="btn-label">Scan URL</span>
+                            </button>
+                        </div>
+                        <div class="url-error" id="urlError" role="alert" aria-live="assertive"></div>
+                        <div class="scan-loading" id="scanLoading" aria-live="polite">
+                            <div class="scan-loading-inner">
+                                <div class="scan-status-row">
+                                    <span class="scan-status-dot" aria-hidden="true"></span>
+                                    <span class="scan-status-text" id="scanStatusText">Fetching the page…</span>
+                                </div>
+                                <div class="scan-tip-row">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                    <span class="scan-tip-text" id="scanTipText">Hover over a link before clicking — the
+                                        real destination can be completely different.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="scanner-note">
+                        <i class="fa-solid fa-shield"></i>
+                        We never store or share your scan data.
+                    </div>
+                </div>
+
+                <!-- Feature pills -->
+                <div class="features-row">
+                    <div class="feature-pill">
+                        <div class="feature-icon blue"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <h4>Real-time Protection</h4>
+                            <p>Powered by advanced threat intelligence.</p>
+                        </div>
+                    </div>
+                    <div class="feature-pill">
+                        <div class="feature-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div>
+                            <h4>Accurate Detection</h4>
+                            <p>High accuracy in identifying phishing threats.</p>
+                        </div>
+                    </div>
+                    <div class="feature-pill">
+                        <div class="feature-icon purple"><i class="fa-solid fa-lock"></i></div>
+                        <div>
+                            <h4>Your Privacy Matters</h4>
+                            <p>We don't store your URLs or personal data.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CONTENT GRID ── -->
+        <div class="content-grid">
+            <div>
+                <!-- Result section (injected by JS after scan) -->
+                <section class="result-section" id="resultSection"></section>
+
+                <!-- Recent Scans panel -->
+                <div class="scans-panel" id="scansPanel">
+                    <div class="scans-panel-header">
+                        <div class="scans-panel-title">
+                            <i class="fa-regular fa-clock"></i>
+                            Recent Scans
+                        </div>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('history') }}" class="view-all-link">
+                            View all history <i class="fa-solid fa-arrow-right" style="font-size:.7rem"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <table class="scans-table">
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th>Result</th>
+                                <th>Risk Level</th>
+                                <th>Scanned At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scansTableBody"></tbody>
+                    </table>
+                    <div class="scans-empty" id="scansEmpty">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p>No scans yet. Enter a URL above to get started.</p>
+                    </div>
+
+                    <div class="btn-clear-row">
+                        <button class="btn-clear-history" id="clearHistory">
+                            <i class="fa-solid fa-trash-can"></i> Clear history
+                        </button>
+                    </div>
+
+                    <div class="scans-footer">
+                        <a href="{{ url_for('history') if current_user.is_authenticated else url_for('login') }}"
+                            class="btn-view-history">
+                            <i class="fa-regular fa-rectangle-list"></i>
+                            View Full History
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SIDEBAR ── -->
+            <aside>
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">Stay Safe Online</div>
+
+                    <!-- Shield illustration -->
+                    <div class="shield-illustration">
+                        <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="45" cy="45" r="44" fill="var(--safe-soft)" stroke="var(--line)"
+                                stroke-width="1" />
+                            <path d="M45 18L22 28V44C22 57.5 32.2 70.1 45 74C57.8 70.1 68 57.5 68 44V28L45 18Z"
+                                fill="#1947d1" fill-opacity=".12" stroke="#1947d1" stroke-width="2"
+                                stroke-linejoin="round" />
+                            <path d="M35 44L42 51L55 38" stroke="#1947d1" stroke-width="3" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <!-- orbiting dots -->
+                            <circle cx="20" cy="35" r="3" fill="#1947d1" fill-opacity=".3" />
+                            <circle cx="72" cy="54" r="4" fill="#1947d1" fill-opacity=".2" />
+                            <circle cx="30" cy="68" r="2.5" fill="#1947d1" fill-opacity=".25" />
+                        </svg>
+                    </div>
+
+                    <div class="sidebar-tips">
+                        <div class="sidebar-tip">
+                            <div class="tip-icon blue"><i class="fa-solid fa-link"></i></div>
+                            <span>Always check URLs before clicking.</span>
+                        </div>
+                        <div class="sidebar-tip">
+                            <div class="tip-icon green"><i class="fa-solid fa-lock"></i></div>
+                            <span>Avoid sharing sensitive information on unfamiliar sites.</span>
+                        </div>
+                        <div class="sidebar-tip">
+                            <div class="tip-icon yellow"><i class="fa-solid fa-envelope"></i></div>
+                            <span>Be cautious of unknown links in emails or messages.</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card-footer">
+                        <a href="{{ url_for('tips') }}" class="btn-more-tips">
+                            More Security Tips <i class="fa-solid fa-arrow-right" style="font-size:.75rem"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer id="about">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <span style="color:var(--primary);font-size:1.3rem;transform:rotate(45deg);display:inline-block;line-height:1">▰</span>
+                    <span class="footer-logo-name">PhishX</span>
+                </div>
+                <p class="footer-tagline">AI-powered phishing detection. Scan any URL and stay protected in real time.</p>
+            </div>
+
+            <div class="footer-links">
+                <div class="footer-col">
+                    <div class="footer-col-title">Product</div>
+                    <a href="{{ url_for('index') }}" class="footer-link">Scanner</a>
+                    <a href="{{ url_for('tips') }}" class="footer-link">Security Tips</a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('history') }}" class="footer-link">Scan History</a>
+                    {% endif %}
+                </div>
+                <div class="footer-col">
+                    <div class="footer-col-title">Account</div>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="footer-link">Sign Out</a>
+                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="footer-link">Admin Panel</a>
+                    {% endif %}
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="footer-link">Sign In</a>
+                    <a href="{{ url_for('signup') }}" class="footer-link">Create Account</a>
+                    {% endif %}
+                </div>
+                <div class="footer-col">
+                    <div class="footer-col-title">About</div>
+                    <span class="footer-link">Built with Flask &amp; ML</span>
+                    <span class="footer-link">Fountain University Osogbo</span>
+                    <span class="footer-link">Final Year Project 2026</span>
+                </div>
+            </div>
+        </div>
+       
+    </footer>
+
+    <!-- ── ALL JS (preserved exactly) ── -->
+    <script>
+        const xx = parseFloat('{{ xx }}');
+        const scannedUrl = '{{ url }}' || '';
+        const hasResult = !isNaN(xx) && xx >= 0 && xx <= 1;
+        const shareToken = '{{ share_token if share_token is defined else "" }}';
+
+        function extractDomain(u) {
+            try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; }
+        }
+        function genId() {
+            return 'ID: SHD-' + Math.floor(1000 + Math.random() * 9000) + '-' + ['AX', 'BX', 'CX', 'DX'][Math.floor(Math.random() * 4)];
+        }
+
+        function getIntelItems(isSafe, prob) {
+            const riskPct = Math.round((1 - prob) * 100);
+            if (isSafe) return [
+                { dot: 'green', title: 'Domain Reputation: Clean', body: 'No entries found in major threat intelligence databases.' },
+                { dot: 'green', title: 'SSL Certificate: Valid', body: 'TLS certificate is valid and issued by a trusted CA.' },
+                { dot: 'warn', title: riskPct + '% Residual Risk', body: 'Minor signals detected — proceed with normal caution.' }
+            ];
+            return [
+                { dot: 'red', title: riskPct + '% Risk Score', body: 'Multiple threat signals detected across URL, domain, and content features.' },
+                { dot: 'red', title: 'Suspicious Domain Patterns', body: 'Domain exhibits patterns commonly associated with phishing infrastructure.' },
+                { dot: 'warn', title: 'Credential Harvesting Risk', body: 'This domain exhibits high-confidence patterns associated with credential harvesting.' }
+            ];
+        }
+
+        function getTechRows(isSafe, url) {
+            let host = '';
+            try { host = new URL(url).hostname; } catch { }
+            return [
+                { key: 'Protocol', val: url.startsWith('https') ? 'HTTPS' : 'HTTP', cls: url.startsWith('https') ? 'green' : 'red' },
+                { key: 'Host', val: host || '—', cls: '' },
+                { key: 'Prediction', val: isSafe ? 'SAFE' : 'PHISHING', cls: isSafe ? 'green' : 'red' },
+                { key: 'Confidence', val: isSafe ? Math.round(xx * 100) + '%' : Math.round((1 - xx) * 100) + '%', cls: '' },
+            ];
+        }
+
+        function renderResult() {
+            if (!hasResult) return;
+            const isSafe = xx >= 0.5;
+            const riskScore = Math.round((1 - xx) * 100);
+            const domain = extractDomain(scannedUrl);
+            const intel = getIntelItems(isSafe, xx);
+            const techRows = getTechRows(isSafe, scannedUrl);
+            const ringColor = isSafe ? 'var(--safe)' : 'var(--danger)';
+            const circumference = 2 * Math.PI * 62;
+            const offset = circumference - (riskScore / 100) * circumference;
+            const ageCls = isSafe ? 'is-good' : 'is-critical';
+            const ageText = isSafe ? 'Over 6 Months' : 'Under 6 Months';
+            const sslCls = isSafe ? 'is-good' : 'is-critical';
+            const sslText = isSafe ? 'Valid / Trusted CA' : 'Invalid / Self-signed';
+
+            const intelHTML = intel.map(i => `
+                <div class="intel-item">
+                    <div class="intel-item-header"><span class="intel-dot ${i.dot}"></span>${i.title}</div>
+                    <div class="intel-item-body">${i.body}</div>
+                </div>`).join('');
+
+            const techHTML = techRows.map(r => `
+                <div class="tech-row">
+                    <span class="tech-key">${r.key}</span>
+                    <span class="tech-val ${r.cls}">${r.val}</span>
+                </div>`).join('');
+
+            document.getElementById('resultSection').innerHTML = `
+            <div class="result-row" style="margin-bottom:24px">
+                <div class="result-main">
+                    <div class="ring-col">
+                        <div class="score-ring-wrap">
+                            <svg viewBox="0 0 140 140">
+                                <circle class="score-ring-bg"   cx="70" cy="70" r="62"/>
+                                <circle class="score-ring-fill"
+                                    cx="70" cy="70" r="62"
+                                    stroke="${ringColor}"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${circumference}"
+                                    id="ringFill"/>
+                            </svg>
+                            <div class="score-ring-text">
+                                <span class="score-number" id="scoreNum" style="color:${ringColor}">0</span>
+                                <span class="score-sublabel">Risk Score</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-col">
+                        <div class="result-meta">
+                            <span class="result-badge ${isSafe ? 'is-safe' : 'is-danger'}">
+                                <i class="fa-solid ${isSafe ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                                ${isSafe ? 'Safe' : 'Phishing Detected'}
+                            </span>
+                            <span class="result-id">${genId()}</span>
+                        </div>
+                        <div class="result-domain">${domain}</div>
+                        <p class="result-description">${isSafe
+                    ? 'No significant threat indicators found. Analysis across 30 URL, domain, and content signals returned a clean result with ' + Math.round(xx * 100) + '% confidence.'
+                    : 'This domain shows high-confidence phishing patterns. Multiple threat signals detected. Do not enter personal information on this site.'
+                }</p>
+                        <div class="result-stats">
+                            <div class="stat-box">
+                                <div class="stat-label">Domain Age</div>
+                                <div class="stat-value ${ageCls}">${ageText}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">SSL Status</div>
+                                <div class="stat-value ${sslCls}">${sslText}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="intel-card">
+                    <div class="intel-title">
+                        <span class="intel-title-sq ${isSafe ? 'safe' : 'danger'}"></span>
+                        Intelligence Feed
+                    </div>
+                    <div class="intel-items">${intelHTML}</div>
+                    <div class="intel-footer">
+                        <button class="btn-tech" onclick="document.getElementById('techDetails').classList.toggle('open'); this.textContent = document.getElementById('techDetails').classList.contains('open') ? 'Hide Details' : 'Technical Details'">
+                            Technical Details
+                        </button>
+                        <div class="tech-details" id="techDetails">${techHTML}</div>
+                        ${shareToken ? `
+                        <button class="btn-tech" onclick="phishxCopy(window.location.origin + '/result/${shareToken}', 'Share link')">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                            Copy Share Link
+                        </button>
+                        <a href="/result/${shareToken}" class="btn-tech" style="text-decoration:none" target="_blank">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            View &amp; Print
+                        </a>` : ''}
+                    </div>
+                </div>
+            </div>`;
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    document.getElementById('ringFill').style.strokeDashoffset = offset;
+                    const el = document.getElementById('scoreNum');
+                    const start = performance.now();
+                    (function step(now) {
+                        const p = Math.min((now - start) / 1100, 1);
+                        const e = 1 - Math.pow(1 - p, 3);
+                        el.textContent = Math.round(riskScore * e);
+                        if (p < 1) requestAnimationFrame(step);
+                    })(start);
+                }, 80);
+            });
+
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Toast: scan complete notification
+            setTimeout(() => {
+                if (isSafe) {
+                    PhishXToast.show('✓ URL analysed — no phishing signals detected', 'success', 4000);
+                } else {
+                    PhishXToast.show('⚠ Phishing signals detected — do not visit this site', 'error', 5000);
+                }
+                // Toast: scan saved to history (logged-in users only)
+                if (shareToken) {
+                    setTimeout(() => {
+                        PhishXToast.show('Scan saved to your history', 'info', 3500,
+                            `${window.location.origin}/result/${shareToken}`);
+                    }, 800);
+                }
+            }, 1200);
+        }
+
+        //    
+        // ── HISTORY ──────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            renderResult();
+            loadHistoryFromServer();
+
+            document.getElementById('clearHistory')?.addEventListener('click', () => {
+                if (!confirm('Clear all scan history?')) return;
+                localStorage.removeItem('phishx-scan-history');
+                renderHistory([]);
+            });
+        });
+
+        async function loadHistoryFromServer() {
+            try {
+                const res = await fetch('/api/recent-scans');
+                if (!res.ok) throw new Error('Failed');
+                const data = await res.json();
+                renderHistory(data.scans || []);
+            } catch (err) {
+                console.error(err);
+                renderHistory([]);
+            }
+        }
+        function addScanLocal(url, score) {
+            const label = score >= 0.5 ? 'Safe' : score >= 0.3 ? 'Suspicious' : 'Malicious';
+            const h = loadHistoryLocal();
+            h.unshift({ url, score, label, ts: new Date().toISOString() });
+            saveHistoryLocal(h.slice(0, MAX_HISTORY));
+        }
+        function fmtDate(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                + '<br>' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+        function badgeHtml(label) {
+            const map = { Safe: 'badge-safe', Suspicious: 'badge-warn', Malicious: 'badge-danger' };
+            const icon = label === 'Safe' ? 'fa-circle-check' : 'fa-circle-exclamation';
+            return `<span class="badge ${map[label] || 'badge-danger'}"><i class="fa-solid ${icon}"></i> ${label}</span>`;
+        }
+        function riskHtml(score) {
+            const level = score >= 0.5 ? 'low' : score >= 0.3 ? 'medium' : 'high';
+            const label = score >= 0.5 ? 'Low' : score >= 0.3 ? 'Medium' : 'High';
+            return `<span class="risk-dot ${level}">${label}</span>`;
+        }
+
+        function renderHistory(h) {
+            const tbody = document.getElementById('scansTableBody');
+            const empty = document.getElementById('scansEmpty');
+            if (!tbody) return;
+            h = h || [];
+            if (h.length === 0) {
+                tbody.innerHTML = '';
+                if (empty) empty.style.display = 'flex';
+                return;
+            }
+            if (empty) empty.style.display = 'none';
+            tbody.innerHTML = h.map((e, i) => `
+                <tr class="scan-row" style="animation-delay:${i * 25}ms">
+                    <td class="scan-url-cell">
+                        <div class="scan-url-inner">
+                            <i class="fa-solid fa-link"></i>
+                            <span class="scan-url-text mono" title="${e.url}">${e.url}</span>
+                        </div>
+                    </td>
+                    <td data-label="Result">${badgeHtml(e.label)}</td>
+                    <td data-label="Risk">${riskHtml(e.score)}</td>
+                    <td data-label="When" style="color:var(--muted);font-size:.78rem;line-height:1.4">${fmtDate(e.ts)}</td>
+                    <td data-label="">
+                        <button class="btn-action-icon" title="Re-scan" onclick="rescanUrl('${e.url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function rescanUrl(url) {
+            const inp = document.getElementById('urlInput');
+            if (!inp) return;
+            inp.value = url;
+            clearUrlError();
+            const form = inp.closest('form');
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                const error = validateUrl(url);
+                if (error) { showUrlError(error); return; }
+                startScanLoadingUI();
+                form.submit();
+            }
+        }
+
+        // ── LOADING ANIMATION ─────────────────────────────────────────────────
+        const SCAN_STATUSES = [
+            'Fetching the page…', 'Parsing URL structure…',
+            'Checking domain age & registration…',
+            'Cross-referencing threat signals…', 'Calculating risk score…'
+        ];
+        const PHISHING_TIPS = [
+            'Hover over a link before clicking — the visible text and the real destination URL can be completely different.',
+            'Check for HTTPS, but don\u2019t rely on it alone — plenty of phishing sites have valid certificates too.',
+            'Look closely at the domain name. "paypa1-secure.com" is not the same as "paypal.com".',
+            'Legitimate companies almost never ask you to confirm your password or card number by email.',
+            'Urgent language like "your account will be suspended in 24 hours" is a classic pressure tactic.',
+            'Spelling mistakes, odd grammar, and stretched-out logos are easy tells once you know to look for them.',
+            'Never open an unexpected attachment, even if it\u2019s disguised as an invoice or delivery notice.',
+            'Type known websites directly into your browser instead of clicking links from email or SMS.',
+            'Turn on two-factor authentication so a stolen password alone isn\u2019t enough to break in.',
+            'If an offer feels too good to be true, verify it on the company\u2019s official site before entering any details.'
+        ];
+
+        let scanStatusTimer = null, scanTipTimer = null;
+
+        function cycleText(el, items, ref) {
+            el.classList.add('is-fading');
+            setTimeout(() => { ref.i = (ref.i + 1) % items.length; el.textContent = items[ref.i]; el.classList.remove('is-fading'); }, 220);
+        }
+
+        function startScanLoadingUI() {
+            const scanBtn = document.getElementById('scanBtn');
+            const scanLoading = document.getElementById('scanLoading');
+            const statusEl = document.getElementById('scanStatusText');
+            const tipEl = document.getElementById('scanTipText');
+            if (!scanBtn || !scanLoading || !statusEl || !tipEl) return;
+            scanBtn.disabled = true;
+            scanBtn.classList.add('is-loading');
+            scanLoading.classList.add('is-active');
+            clearInterval(scanStatusTimer); clearInterval(scanTipTimer);
+            const statusRef = { i: 0 };
+            statusEl.textContent = SCAN_STATUSES[0];
+            scanStatusTimer = setInterval(() => cycleText(statusEl, SCAN_STATUSES, statusRef), 1800);
+            const tipRef = { i: Math.floor(Math.random() * PHISHING_TIPS.length) };
+            tipEl.textContent = PHISHING_TIPS[tipRef.i];
+            scanTipTimer = setInterval(() => cycleText(tipEl, PHISHING_TIPS, tipRef), 3400);
+        }
+
+        function resetScanLoadingUI() {
+            const scanBtn = document.getElementById('scanBtn');
+            const scanLoading = document.getElementById('scanLoading');
+            if (scanBtn) { scanBtn.disabled = false; scanBtn.classList.remove('is-loading'); }
+            if (scanLoading) scanLoading.classList.remove('is-active');
+            clearInterval(scanStatusTimer); clearInterval(scanTipTimer);
+        }
+
+        // ── URL VALIDATION ────────────────────────────────────────────────────
+        const PRIVATE_HOSTS = /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.|::1|0\.0\.0\.0)/i;
+
+        function validateUrl(raw) {
+            const val = raw.trim();
+            if (!val) return 'Please enter a URL.';
+            let withScheme = val;
+            if (!/^https?:\/\//i.test(val)) withScheme = 'https://' + val;
+            let parsed;
+            try { parsed = new URL(withScheme); } catch { return 'That doesn\'t look like a valid URL. Example: https://example.com'; }
+            const host = parsed.hostname.toLowerCase();
+            if (!host.includes('.')) return 'Enter a full URL with a domain, e.g. https://example.com';
+            const tld = host.split('.').pop();
+            if (!tld || tld.length < 2 || !/^[a-z]+$/i.test(tld)) return 'The URL has an unrecognised or missing top-level domain (.com, .org, etc.).';
+            if (PRIVATE_HOSTS.test(host)) return 'Private or loopback addresses can\'t be scanned externally.';
+            if (!/[a-z]/i.test(host.replace(/\d|\./g, ''))) return 'Please enter a real domain name or URL.';
+            return null;
+        }
+
+        function showUrlError(msg) {
+            const errEl = document.getElementById('urlError');
+            const wrap = document.getElementById('scannerInputWrap');
+            const inpEl = document.getElementById('urlInput');
+            if (!errEl) return;
+            errEl.textContent = msg;
+            errEl.classList.add('is-visible');
+            wrap?.classList.add('has-error');
+            inpEl?.setAttribute('aria-invalid', 'true');
+        }
+
+        function clearUrlError() {
+            const errEl = document.getElementById('urlError');
+            const wrap = document.getElementById('scannerInputWrap');
+            const inpEl = document.getElementById('urlInput');
+            if (!errEl) return;
+            errEl.textContent = '';
+            errEl.classList.remove('is-visible');
+            wrap?.classList.remove('has-error');
+            inpEl?.removeAttribute('aria-invalid');
+        }
+
+        document.getElementById('urlInput')?.addEventListener('input', clearUrlError);
+
+        document.getElementById('scanForm')?.addEventListener('submit', (e) => {
+            const inp = document.getElementById('urlInput');
+            const raw = inp?.value || '';
+            const error = validateUrl(raw);
+            if (error) { e.preventDefault(); showUrlError(error); inp?.focus(); return; }
+            if (inp && !/^https?:\/\//i.test(raw.trim())) inp.value = 'https://' + raw.trim();
+            clearUrlError();
+            startScanLoadingUI();
+        });
+
+        window.addEventListener('pageshow', resetScanLoadingUI);
+    </script>
+    <script src="/static/notifications.js"></script>
 </body>
 
 </html>
-

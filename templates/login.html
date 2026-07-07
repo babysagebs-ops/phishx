@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — PhishX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <style>
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+        }
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1.75rem;
+            color: var(--ink);
+        }
+        .auth-logo span:first-child { color: var(--primary); }
+        .auth-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; color: var(--ink); }
+        .auth-sub   { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.75rem; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+        .form-input {
+            width: 100%;
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            color: var(--ink);
+            font-family: inherit;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .form-input:focus { border-color: var(--primary); }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-full {
+            width: 100%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.8rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-full:hover { background: var(--primary-700); }
+
+        .auth-footer { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--muted); }
+        .auth-footer a { color: var(--primary); font-weight: 600; }
+
+        .flash-msg {
+            padding: 0.65rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .flash-error   { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); }
+        .flash-success { background: var(--safe-soft);   color: var(--safe);   border: 1px solid var(--safe); }
+        .flash-info    { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+    </style>
+</head>
+<body>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <span>▰</span>
+                <span>PhishX</span>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-sub">Sign in to your PhishX account</p>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input class="form-input" type="email" id="email" name="email" required placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-input" type="password" id="password" name="password" required placeholder="••••••••" />
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="remember" name="remember" />
+                    <label for="remember">Remember me for 30 days</label>
+                </div>
+                <button class="btn-full" type="submit">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="{{ url_for('signup') }}">Sign up free</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

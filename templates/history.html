@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History — PhishX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <style>
+        .history-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 24px 4rem; }
+        .page-header { margin-bottom: 1.75rem; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+        .page-header p  { color: var(--muted); font-size: 0.9rem; }
+
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--bg-soft);
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--muted); padding: 0.75rem 1rem;
+            text-align: left; border-bottom: 1px solid var(--line);
+        }
+        td { padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--ink); border-bottom: 1px solid var(--line-2); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--bg-soft); }
+
+        .url-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+        .badge-danger { background: var(--danger-soft); color: var(--danger); }
+        .badge-safe   { background: var(--safe-soft);   color: var(--safe); }
+
+        .link-btn {
+            color: var(--primary); font-size: 0.82rem;
+            font-weight: 600; text-decoration: none;
+        }
+        .link-btn:hover { text-decoration: underline; }
+
+        .empty-state {
+            text-align: center; padding: 3rem 1rem;
+            color: var(--muted);
+        }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+        .empty-state a { color: var(--primary); font-weight: 600; }
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .history-wrap { padding: 1.25rem 16px 3rem; }
+            table thead { display: none; }
+            table tbody tr {
+                display: block;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                margin-bottom: 10px;
+                padding: 12px 14px;
+                background: var(--surface);
+            }
+            table td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 4px 0;
+                border: none;
+                font-size: 0.82rem;
+            }
+            table td::before {
+                content: attr(data-label);
+                font-size: 0.68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                color: var(--muted-2);
+                flex-shrink: 0;
+                min-width: 60px;
+            }
+            table td.url-cell {
+                flex-direction: column;
+                align-items: flex-start;
+                word-break: break-all;
+                max-width: 100%;
+                white-space: normal;
+            }
+            table td.url-cell::before { content: 'URL'; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Simple nav -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{{ url_for('index') }}" style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink)">
+                <span style="color:var(--primary)">▰</span> PhishX
+            </a>
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}"   class="nav-link">Scanner</a>
+                <a href="{{ url_for('tips') }}"    class="nav-link">Tips</a>
+                <a href="{{ url_for('history') }}" class="nav-link active">History</a>
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="history-wrap">
+        <div class="page-header">
+            <h1>Your Scan History</h1>
+            <p>All URLs you have scanned — click View to see the full result.</p>
+        </div>
+
+        <div class="table-wrap">
+            {% if scans %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Risk Score</th>
+                        <th>Result</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in scans %}
+                    <tr>
+                        <td class="url-cell" title="{{ scan.url }}">{{ scan.url }}</td>
+                        <td data-label="Risk">{{ scan.risk_score }}%</td>
+                        <td data-label="Result">
+                            {% if scan.is_phishing %}
+                                <span class="badge badge-danger">Phishing</span>
+                            {% else %}
+                                <span class="badge badge-safe">Safe</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Date">{{ scan.scanned_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                You haven't scanned any URLs yet.<br><br>
+                <a href="{{ url_for('index') }}">Scan your first URL →</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer style="background:var(--surface);border-top:1px solid var(--line);text-align:center;padding:20px 24px;font-size:0.78rem;color:var(--muted)">
+        &copy; 2026 PhishX &nbsp;·&nbsp; Final Year Project &nbsp;·&nbsp;
+        <a href="{{ url_for('index') }}" style="color:var(--primary)">Scanner</a> &nbsp;·&nbsp;
+        <a href="{{ url_for('tips') }}" style="color:var(--primary)">Tips</a>
+    </footer>
+</body>
+</html>

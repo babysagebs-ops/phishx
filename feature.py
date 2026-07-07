@@ -24,7 +24,7 @@ class FeatureExtraction:
 
         try:
             self.response = requests.get(url)
-            self.soup = BeautifulSoup(response.text, 'html.parser')
+            self.soup = BeautifulSoup(self.response.text, 'html.parser')
         except:
             pass
 
@@ -168,9 +168,7 @@ class FeatureExtraction:
                 return 1
             return -1
         except:
-            return -1
-
-    # 10. Favicon
+            return 0
     def Favicon(self):
         try:
             for head in self.soup.find_all('head'):
@@ -180,7 +178,7 @@ class FeatureExtraction:
                         return 1
             return -1
         except:
-            return -1
+            return 0
 
     # 11. NonStdPort
     def NonStdPort(self):
@@ -204,6 +202,7 @@ class FeatureExtraction:
     # 13. RequestURL
     def RequestURL(self):
         try:
+            i, success = 0, 0
             for img in self.soup.find_all('img', src=True):
                 dots = [x.start(0) for x in re.finditer('\.', img['src'])]
                 if self.url in img['src'] or self.domain in img['src'] or len(dots) == 1:
@@ -246,7 +245,7 @@ class FeatureExtraction:
         try:
             i,unsafe = 0,0
             for a in self.soup.find_all('a', href=True):
-                if "#" in a['href'] or "javascript" in a['href'].lower() or "mailto" in a['href'].lower() or not (url in a['href'] or self.domain in a['href']):
+                if "#" in a['href'] or "javascript" in a['href'].lower() or "mailto" in a['href'].lower() or not (self.url in a['href'] or self.domain in a['href']):
                     unsafe = unsafe + 1
                 i = i + 1
 
@@ -313,12 +312,12 @@ class FeatureExtraction:
     # 17. InfoEmail
     def InfoEmail(self):
         try:
-            if re.findall(r"[mail\(\)|mailto:?]", self.soap):
+            if re.findall(r"[mail\(\)|mailto:?]", self.soup.get_text()):
                 return -1
             else:
                 return 1
         except:
-            return -1
+            return 0
 
     # 18. AbnormalURL
     def AbnormalURL(self):
@@ -328,7 +327,7 @@ class FeatureExtraction:
             else:
                 return -1
         except:
-            return -1
+            return 0
 
     # 19. WebsiteForwarding
     def WebsiteForwarding(self):
@@ -340,7 +339,7 @@ class FeatureExtraction:
             else:
                 return -1
         except:
-             return -1
+             return 0
 
     # 20. StatusBarCust
     def StatusBarCust(self):
@@ -398,7 +397,7 @@ class FeatureExtraction:
                 return 1
             return -1
         except:
-            return -1
+            return 0
 
     # 25. DNSRecording    
     def DNSRecording(self):
@@ -416,29 +415,29 @@ class FeatureExtraction:
                 return 1
             return -1
         except:
-            return -1
+            return 0
 
     # 26. WebsiteTraffic   
     def WebsiteTraffic(self):
         try:
-            rank = BeautifulSoup(urllib.request.urlopen("http://data.alexa.com/data?cli=10&dat=s&url=" + url).read(), "xml").find("REACH")['RANK']
+            rank = BeautifulSoup(urllib.request.urlopen("http://data.alexa.com/data?cli=10&dat=s&url=" + self.url).read(), "xml").find("REACH")['RANK']
             if (int(rank) < 100000):
                 return 1
             return 0
-        except :
-            return -1
+        except:
+            return 0
 
     # 27. PageRank
     def PageRank(self):
         try:
             prank_checker_response = requests.post("https://www.checkpagerank.net/index.php", {"name": self.domain})
 
-            global_rank = int(re.findall(r"Global Rank: ([0-9]+)", rank_checker_response.text)[0])
+            global_rank = int(re.findall(r"Global Rank: ([0-9]+)", prank_checker_response.text)[0])
             if global_rank > 0 and global_rank < 100000:
                 return 1
             return -1
         except:
-            return -1
+            return 0
             
 
     # 28. GoogleIndex
@@ -469,7 +468,7 @@ class FeatureExtraction:
     def StatsReport(self):
         try:
             url_match = re.search(
-        'at\.ua|usa\.cc|baltazarpresentes\.com\.br|pe\.hu|esy\.es|hol\.es|sweddy\.com|myjino\.ru|96\.lt|ow\.ly', url)
+        'at\.ua|usa\.cc|baltazarpresentes\.com\.br|pe\.hu|esy\.es|hol\.es|sweddy\.com|myjino\.ru|96\.lt|ow\.ly', self.url)
             ip_address = socket.gethostbyname(self.domain)
             ip_match = re.search('146\.112\.61\.108|213\.174\.157\.151|121\.50\.168\.88|192\.185\.217\.116|78\.46\.211\.158|181\.174\.165\.13|46\.242\.145\.103|121\.50\.168\.40|83\.125\.22\.219|46\.242\.145\.98|'
                                 '107\.151\.148\.44|107\.151\.148\.107|64\.70\.19\.203|199\.184\.144\.27|107\.151\.148\.108|107\.151\.148\.109|119\.28\.52\.61|54\.83\.43\.69|52\.69\.166\.231|216\.58\.192\.225|'
